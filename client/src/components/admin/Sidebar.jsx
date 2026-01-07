@@ -83,6 +83,11 @@ const menu = [
     href: "/admin/payment-methods",
   },
   {
+    label: "Phí Vận Chuyển",
+    icon: <Receipt className="w-5 h-5" />,
+    href: "/admin/shipping-costs",
+  },
+  {
     label: "Khách Hàng",
     icon: <Users className="w-5 h-5" />,
     href: "/admin/customers",

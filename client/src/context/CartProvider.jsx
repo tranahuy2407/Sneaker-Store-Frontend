@@ -14,7 +14,6 @@ export const CartProvider = ({ children }) => {
     (state) => state.userAuth.isAuthenticated
   );
 
-  /* -------------------- NORMALIZE -------------------- */
   const normalizeCartItem = (item) => {
     const productSize = item.productSize ?? item;
     const product = productSize.product ?? item.product;
@@ -28,7 +27,6 @@ export const CartProvider = ({ children }) => {
     };
   };
 
-  /* -------------------- LOAD LOCAL CART -------------------- */
   useEffect(() => {
     if (!isAuthenticated) {
       const stored = localStorage.getItem("cart");
@@ -37,7 +35,6 @@ export const CartProvider = ({ children }) => {
     }
   }, [isAuthenticated]);
 
-  /* -------------------- SYNC WHEN LOGIN -------------------- */
 useEffect(() => {
   const syncCartWhenLogin = async () => {
     if (!isAuthenticated) return;
@@ -66,14 +63,12 @@ useEffect(() => {
 }, [isAuthenticated]);
 
 
-  /* -------------------- SAVE LOCAL CART -------------------- */
   useEffect(() => {
     if (!isAuthenticated && initialized) {
       localStorage.setItem("cart", JSON.stringify(cart));
     }
   }, [cart, isAuthenticated, initialized]);
 
-  /* -------------------- ADD TO CART -------------------- */
   const addToCart = async (productSize, quantity = 1) => {
       if (!productSize?.id) {
         throw new Error("productSizeId missing !");
@@ -116,8 +111,6 @@ useEffect(() => {
 
     setShowCartPopup(true);
   };
-
-  /* -------------------- REMOVE -------------------- */
  const removeFromCart = async (productSizeId) => {
   if (!productSizeId) return;
 
@@ -134,7 +127,6 @@ useEffect(() => {
   }
 };
 
-  /* -------------------- UPDATE QUANTITY -------------------- */
   const updateQuantity = async (key, quantity) => {
     if (quantity < 1) return;
 
@@ -157,6 +149,16 @@ useEffect(() => {
     }
   };
 
+  const clearCart = async () => {
+  if (!isAuthenticated) {
+    setCart([]);
+    localStorage.removeItem("cart");
+  } else {
+    await cartAPI.clearCart();
+    setCart([]);
+  }
+};
+
   return (
     <CartContext.Provider
       value={{
@@ -166,6 +168,7 @@ useEffect(() => {
         updateQuantity,
         showCartPopup,
         setShowCartPopup,
+        clearCart
       }}
     >
       {children}

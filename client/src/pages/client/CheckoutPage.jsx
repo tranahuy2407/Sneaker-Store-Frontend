@@ -6,6 +6,9 @@ import { logoutUser } from "@/redux/slices/userAuthSlice";
 import paymentAPI from "@/api/payment_method.api";
 import { fetchProvinces, fetchDistricts, fetchWards } from "@/api/address.api";
 import orderAPI from "@/api/order.api";
+import SuccessNotification from "@/components/SuccessNotification";
+import WarningNotification from "@/components/WarningNotification";
+import { refreshUserProfile } from "@/redux/slices/userAuthSlice";
 
 const normalize = (str = "") =>
   str
@@ -22,34 +25,31 @@ const getIdByName = (list, name) =>
 const getNameById = (list, id) =>
   list.find((i) => String(i.value) === String(id))?.label || "";
 
-/* ================== COMPONENT ================== */
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
   const { isAuthenticated, user } = useSelector((s) => s.userAuth);
-
-  /* ================== ORDER ================== */
   const [items, setItems] = useState([]);
-
-  /* ================== PAYMENT ================== */
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState(null);
-
-
-  /* ================== ADDRESS BOOK ================== */
-  const [addressBook, setAddressBook] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("other");
-
-  /* ================== ADDRESS API ================== */
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
-
+  const [successMsg, setSuccessMsg] = useState("");
+  const [warningMsg, setWarningMsg] = useState("");
   const [provinceId, setProvinceId] = useState("");
   const [districtId, setDistrictId] = useState("");
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [wardId, setWardId] = useState("");
+  const { profileLoaded } = useSelector((s) => s.userAuth);
+
+  const addressBook = useMemo(() => {
+    if (!isAuthenticated || !profileLoaded) return [];
+    return Array.isArray(user?.addresses) ? user.addresses : [];
+  }, [isAuthenticated, profileLoaded, user]);
 
   const [shippingInfo, setShippingInfo] = useState({
     name: "",
@@ -64,6 +64,7 @@ const CheckoutPage = () => {
     const buildShippingPayload = () => ({
     name: shippingInfo.name,
     phone: shippingInfo.phone,
+    email: shippingInfo.email,
     address_line: shippingInfo.address,
     ward: shippingInfo.ward,
     district: shippingInfo.district,
@@ -73,7 +74,6 @@ const CheckoutPage = () => {
 
   const isUsingSavedAddress = selectedAddressId !== "other";
 
-  /* ================== LOAD CART ================== */
   useEffect(() => {
   if (location.state?.buyNow && location.state?.items) {
     setItems(location.state.items);
@@ -89,29 +89,15 @@ const CheckoutPage = () => {
     );
   }
 }, [cart, location]);
+
 useEffect(() => {
-  if (location.state?.buyNow && location.state?.items) {
-    setItems(location.state.items);
-  } else {
-    setItems(
-      cart.map((i) => ({
-        product_size_id: i.productSizeId, 
-        quantity: i.quantity,
-        price: i.product.discountPrice ?? i.product.price,
-        product: i.product,
-        size: i.size,
-      }))
-    );
+  if (isAuthenticated && !user?.addresses) {
+    dispatch(refreshUserProfile());
   }
-}, [cart, location]);
-
-
-  /* ================== LOAD PROVINCES ================== */
+}, [isAuthenticated, user, dispatch]);
   useEffect(() => {
     fetchProvinces().then(setProvinces);
   }, []);
-
-  /* ================== LOAD DISTRICTS ================== */
   useEffect(() => {
     if (!provinceId) {
       setDistricts([]);
@@ -120,8 +106,6 @@ useEffect(() => {
     }
     fetchDistricts(provinceId).then(setDistricts);
   }, [provinceId]);
-
-  /* ================== LOAD WARDS ================== */
   useEffect(() => {
     if (!districtId) {
       setWards([]);
@@ -129,8 +113,6 @@ useEffect(() => {
     }
     fetchWards(districtId).then(setWards);
   }, [districtId]);
-
-  /* ================== LOAD USER ADDRESS ================== */
 useEffect(() => {
   if (!isAuthenticated || !user) return;
 
@@ -138,71 +120,80 @@ useEffect(() => {
     ...p,
     email: user.email || "",
   }));
-
-  const addresses = user.addresses || [];
-  setAddressBook(addresses);
-
-  const def = addresses.find((a) => a.is_default);
-  if (def) setSelectedAddressId(def.id);
 }, [isAuthenticated, user]);
 
+useEffect(() => {
+  if (!profileLoaded) return;
+  if (!addressBook.length) return;
 
-  /* ================== APPLY ADDRESS WHEN SELECT ================== */
-  useEffect(() => {
-    if (selectedAddressId === "other") return;
+  const def = addressBook.find((a) => a.is_default);
+  if (def) {
+    setSelectedAddressId(def.id);
+  }
+}, [profileLoaded, addressBook]);
 
-    const addr = addressBook.find(
-      (a) => String(a.id) === String(selectedAddressId)
-    );
-    if (!addr || !provinces.length) return;
 
-    const pId = getIdByName(provinces, addr.city);
-    setProvinceId(pId);
 
-    setShippingInfo({
-      name: addr.receiver_name,
-      phone: addr.receiver_phone,
-      address: addr.address_line,
-      province: addr.city,
-      district: addr.district,
-      ward: addr.ward,
-      note: addr.note || "",
-    });
-  }, [selectedAddressId, addressBook, provinces]);
+useEffect(() => {
+  if (
+    selectedAddressId === "other" ||
+    !provinces.length ||
+    !addressBook.length
+  )
+    return;
 
-  /* ================== SYNC DISTRICT / WARD ================== */
-  useEffect(() => {
-    if (!districts.length || selectedAddressId === "other") return;
+  const addr = addressBook.find(
+    (a) => String(a.id) === String(selectedAddressId)
+  );
+  if (!addr) return;
 
-    const addr = addressBook.find(
-      (a) => String(a.id) === String(selectedAddressId)
-    );
-    if (!addr) return;
+  setSelectedAddress(addr);
 
-    const dId = getIdByName(districts, addr.district);
-    setDistrictId(dId);
-  }, [districts]);
+  const pId = getIdByName(provinces, addr.city);
+  setProvinceId(pId);
 
-  useEffect(() => {
-    if (!wards.length || selectedAddressId === "other") return;
+  setShippingInfo((prev) => ({
+    ...prev,
+    name: addr.receiver_name || "",
+    phone: addr.receiver_phone || "",
+    address: addr.address_line || "",
+    province: addr.city || "",
+    district: "",
+    ward: "",
+    note: addr.note || "",
+  }));
+}, [selectedAddressId, provinces, addressBook]);
 
-    const addr = addressBook.find(
-      (a) => String(a.id) === String(selectedAddressId)
-    );
-    if (!addr) return;
+useEffect(() => {
+  if (!districts.length || !selectedAddress) return;
 
-    const wId = getIdByName(wards, addr.ward);
-    setWardId(wId);
-  }, [wards]);
+  const dId = getIdByName(districts, selectedAddress.district);
+  setDistrictId(dId);
 
-  /* ================== PAYMENT ================== */
+  setShippingInfo((p) => ({
+    ...p,
+    district: selectedAddress.district || "",
+  }));
+}, [districts, selectedAddress]);
+
+useEffect(() => {
+  if (!wards.length || !selectedAddress) return;
+
+  const wId = getIdByName(wards, selectedAddress.ward);
+  setWardId(wId);
+
+  setShippingInfo((p) => ({
+    ...p,
+    ward: selectedAddress.ward || "",
+  }));
+}, [wards, selectedAddress]);
+
   useEffect(() => {
     paymentAPI.getAll({ is_active: true }).then((res) => {
       setPaymentMethods(res.data?.data || []);
     });
   }, []);
 
-  /* ================== TOTAL ================== */
   const subtotal = useMemo(
     () =>
       items.reduce((sum, i) => {
@@ -211,8 +202,6 @@ useEffect(() => {
       }, 0),
     [items]
   );
-
-  /* ================== ACTIONS ================== */
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate("/login");
@@ -220,17 +209,30 @@ useEffect(() => {
 
 const handlePlaceOrder = async () => {
   if (!paymentMethod) {
-    alert("Vui lòng chọn phương thức thanh toán");
+    setWarningMsg("Vui lòng chọn phương thức thanh toán");
     return;
   }
+
   if (!shippingInfo.email) {
-    alert("Vui lòng nhập email nhận đơn hàng");
+    setWarningMsg("Vui lòng nhập email nhận đơn hàng");
     return;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(shippingInfo.email)) {
-    alert("Email không đúng định dạng");
+    setWarningMsg("Email không đúng định dạng");
+    return;
+  }
+
+  if (
+    !shippingInfo.name ||
+    !shippingInfo.phone ||
+    !shippingInfo.address ||
+    !shippingInfo.province ||
+    !shippingInfo.district ||
+    !shippingInfo.ward
+  ) {
+    setWarningMsg("Vui lòng nhập đầy đủ thông tin giao hàng");
     return;
   }
 
@@ -246,11 +248,15 @@ const handlePlaceOrder = async () => {
       total: subtotal,
     });
 
-    alert("Đặt hàng thành công");
-    navigate("/");
+    setSuccessMsg("Đặt hàng thành công !");
+    await clearCart();
+    setTimeout(() => {
+      navigate("/");
+    }, 1500);
   } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.message || "Đặt hàng thất bại");
+    setWarningMsg(
+      err.response?.data?.message || "Đặt hàng thất bại"
+    );
   }
 };
 
@@ -310,9 +316,14 @@ const handlePlaceOrder = async () => {
                   Đăng xuất
                 </button>
               ) : (
-                <Link to="/login" className="text-sm text-blue-500">
+                <Link
+                  to="/login"
+                  state={{ from: location.pathname }}
+                  className="text-sm text-blue-500"
+                >
                   Đăng nhập
                 </Link>
+
               )}
             </div>
 
@@ -532,6 +543,19 @@ const handlePlaceOrder = async () => {
           </button>
         </div>
       </div>
+      {successMsg && (
+      <SuccessNotification
+        message={successMsg}
+        onClose={() => setSuccessMsg("")}
+      />
+    )}
+
+    {warningMsg && (
+      <WarningNotification
+        message={warningMsg}
+        onClose={() => setWarningMsg("")}
+      />
+    )}
     </div>
   );
 };

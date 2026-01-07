@@ -32,6 +32,7 @@ import ProductDetail from "@/pages/client/ProductDetail.jsx";
 import CategoryPage from "@/pages/client/CategoryPage.jsx";
 import SearchPage from "@/pages/client/SearchPage.jsx";
 import CheckoutPage from "@/pages/client/CheckoutPage.jsx";
+import ShippingCostPage from "@/pages/admin/shipping-costs/ShippingCostPage.jsx";
 
 export const routes = [
   //Client 
@@ -210,6 +211,16 @@ export const routes = [
       <ProtectedRoute>
         <AdminLayout>
           <PaymentMethodsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/shipping-costs",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <ShippingCostPage />
         </AdminLayout>
       </ProtectedRoute>
     ),

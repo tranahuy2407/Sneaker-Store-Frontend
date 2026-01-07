@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearUserError } from "../../redux/slices/userAuthSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible, AiOutlineGoogle } from "react-icons/ai";
 import logo from "../../assets/sneaker-logo.jfif";
 
@@ -9,6 +9,8 @@ export default function UserLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const location = useLocation();
+  const from = location.state?.from || "/";
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -18,8 +20,10 @@ export default function UserLogin() {
   );
 
   useEffect(() => {
-    if (isAuthenticated) navigate("/", { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
