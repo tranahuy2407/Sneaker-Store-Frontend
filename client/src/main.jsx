@@ -12,7 +12,6 @@ setupAxiosInterceptors();
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-  <StrictMode>
     <Provider store={store}>
       <CartProvider>
         <BrowserRouter>
@@ -20,5 +19,4 @@ root.render(
         </BrowserRouter>
       </CartProvider>
     </Provider>
-  </StrictMode>
 );

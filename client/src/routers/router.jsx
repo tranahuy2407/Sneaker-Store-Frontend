@@ -33,6 +33,8 @@ import CategoryPage from "@/pages/client/CategoryPage.jsx";
 import SearchPage from "@/pages/client/SearchPage.jsx";
 import CheckoutPage from "@/pages/client/CheckoutPage.jsx";
 import ShippingCostPage from "@/pages/admin/shipping-costs/ShippingCostPage.jsx";
+import OrderDetailPage from "@/pages/admin/orders/OrderDetailPage.jsx";
+import OrderTrackingPage from "@/pages/client/OrderTrackingPage.jsx";
 
 export const routes = [
   //Client 
@@ -57,6 +59,14 @@ export const routes = [
     ),
   },
   {
+    path:"/orders/:id/tracking",
+    element:(
+        <ProtectedRouteUser>
+          <OrderTrackingPage />
+        </ProtectedRouteUser>
+    )
+  },
+  {
     path:"/cart",
     element:(
         <CartPage />
@@ -78,6 +88,7 @@ export const routes = [
       path: "/checkout",
       element: <CheckoutPage />
     },
+    
   // Admin Dashboard Routes
   {
     path: "/admin/login",
@@ -191,7 +202,16 @@ export const routes = [
       </ProtectedRoute>
     ),
   },
-
+  {
+    path: "/admin/orders/:id",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <OrderDetailPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
   // Invoices Routes
   {
     path: "/admin/invoices",

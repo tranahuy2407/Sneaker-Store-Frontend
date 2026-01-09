@@ -20,6 +20,8 @@ import {
   checkUserAuth,
   refreshUserProfile,
 } from "../../redux/slices/userAuthSlice";
+import orderAPI from "@/api/order.api";
+import { Link } from "react-router-dom";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -30,8 +32,9 @@ export default function ProfilePage() {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAddAddress, setShowAddAddress] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
 
-  const orders = user?.orders || [];
   const addresses = user?.addresses || [];
   useEffect(() => {
     dispatch(checkUserAuth());
@@ -42,6 +45,32 @@ export default function ProfilePage() {
       dispatch(refreshUserProfile());
     }
   }, [checkingAuth, user?.id, profileLoaded, dispatch]);
+  useEffect(() => {
+    if (!checkingAuth && user?.id) {
+      setLoadingOrders(true);
+      orderAPI
+        .getMyOrders()
+        .then((res) => {
+          setOrders(res.data.data || []);
+        })
+        .catch(() => {
+          setOrders([]);
+        })
+        .finally(() => {
+          setLoadingOrders(false);
+        });
+    }
+  }, [checkingAuth, user?.id]);
+  const formatAddress = (order) => {
+    return [
+      order.address_line,
+      order.ward,
+      order.district,
+      order.city,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  };
 
   if (checkingAuth) {
     return (
@@ -89,15 +118,21 @@ export default function ProfilePage() {
                 <thead>
                   <tr className="border-b bg-gray-50">
                     <th className="p-3">Đơn hàng</th>
-                    <th className="p-3">Ngày</th>
-                    <th className="p-3">Chuyển đến</th>
-                    <th className="p-3">Địa chỉ</th>
-                    <th className="p-3">Giá trị đơn hàng</th>
-                    <th className="p-3">Tình trạng thanh toán</th>
+                    <th className="p-3">Ngày đặt</th>
+                    <th className="p-3">Tổng tiền</th>
+                    <th className="p-3 text-center">Thanh toán</th>
+                    <th className="p-3 text-center">Theo dõi</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {orders.length === 0 ? (
+                  {loadingOrders ? (
+                    <tr>
+                      <td colSpan="6" className="p-4 text-center">
+                        Đang tải đơn hàng...
+                      </td>
+                    </tr>
+                  ) : orders.length === 0 ? (
                     <tr>
                       <td colSpan="6" className="p-4 text-center text-gray-500">
                         Không có đơn hàng nào.
@@ -106,15 +141,42 @@ export default function ProfilePage() {
                   ) : (
                     orders.map((order) => (
                       <tr key={order.id} className="border-b">
-                        <td className="p-3">{order.id}</td>
-                        <td className="p-3">{order.date}</td>
-                        <td className="p-3">{order.recipient}</td>
-                        <td className="p-3">{order.address}</td>
-                        <td className="p-3">{order.total.toLocaleString()}đ</td>
-                        <td className="p-3">
-                          {order.paid ? "Đã thanh toán" : "Chưa thanh toán"}
-                        </td>
-                      </tr>
+                  <td className="p-3 font-medium">
+                    #{order.order_code || order.id}
+                  </td>
+
+                  <td className="p-3">
+                    {new Date(order.created_at).toLocaleDateString("vi-VN")}
+                  </td>
+
+                  <td className="p-3 font-semibold text-red-500">
+                    {order.total_amount.toLocaleString()}đ
+                  </td>
+
+                  <td className="p-3 text-center">
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        order.payment_status === "paid"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {order.payment_status === "paid"
+                        ? "Đã thanh toán"
+                        : "Chưa thanh toán"}
+                    </span>
+                  </td>
+
+                  <td className="p-3 text-center">
+                    <Link
+                      to={`/orders/${order.id}/tracking`}
+                      className="px-3 py-1 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-600 hover:text-white"
+                    >
+                      Theo dõi
+                    </Link>
+                  </td>
+                </tr>
+
                     ))
                   )}
                 </tbody>

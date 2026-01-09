@@ -239,6 +239,7 @@ const handlePlaceOrder = async () => {
   try {
     await orderAPI.create({
       items: items.map((i) => ({
+        product_id: i.product.id,  
         product_size_id: i.product_size_id,
         quantity: i.quantity,
         price: i.price,
@@ -294,7 +295,7 @@ const handlePlaceOrder = async () => {
                 }
               }}
             >
-              <option value="other">➕ Địa chỉ khác</option>
+              <option value="other">Địa chỉ khác</option>
 
               {addressBook.map((a) => (
                 <option key={`addr-${a.id}`} value={a.id}>

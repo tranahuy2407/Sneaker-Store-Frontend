@@ -4,6 +4,7 @@ import { logoutAdmin } from "../../redux/slices/authSlice";
 import AdminLayout from "../../components/admin/AdminLayout";
 import React, { useEffect, useState } from "react";
 import productAPI from "@/api/product.api";
+import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -57,6 +58,9 @@ export default function AdminDashboard() {
             )}
           </div>
 
+         <div className="flex items-center gap-4">
+          <AdminNotificationBell />
+
           <button
             onClick={handleLogout}
             disabled={loading}
@@ -64,6 +68,8 @@ export default function AdminDashboard() {
           >
             {loading ? "Đang đăng xuất..." : "Đăng xuất"}
           </button>
+        </div>
+
         </div>
 
         {/* DASHBOARD CARDS */}
