@@ -1,14 +1,16 @@
-import { Bell } from "lucide-react";
+import { Bell, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import notificationAPI from "@/api/notification.api";
 import { socket, joinAdminRoom } from "@/services/socket";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminNotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const fetchUnreadCount = async () => {
     const res = await notificationAPI.getAdminUnreadCount();
@@ -23,29 +25,38 @@ export default function AdminNotificationBell() {
     setNotifications(res.data.data);
   };
 
-  useEffect(() => {
+useEffect(() => {
+  fetchUnreadCount();
+  joinAdminRoom();
+
+  const handler = (payload) => {
     fetchUnreadCount();
-    joinAdminRoom();
-
-    const handler = (payload) => {
-      fetchUnreadCount();
-      fetchNotifications();
-
-      // 🔥 TOAST REALTIME
-      toast.info(
-        payload?.title || "Có thông báo mới cho Admin",
+    fetchNotifications();
+    if (payload?.type === "order_cancelled") {
+      toast.warning(
+        `Đơn ${payload.orderCode} đã bị huỷ`,
         {
-          icon: "🔔",
+          icon: <XCircle className="w-5 h-5 text-red-500" />,
         }
       );
-    };
+      return;
+    }
 
-    socket.on("admin_notification", handler);
+    toast.info(
+      payload?.title || "Có thông báo mới cho Admin",
+      { 
+        icon: <Bell className="w-5 h-5 text-yellow-500" />,
+      }
+    );
+  };
 
-    return () => {
-      socket.off("admin_notification", handler);
-    };
-  }, []);
+  socket.on("admin_notification", handler);
+
+  return () => {
+    socket.off("admin_notification", handler);
+  };
+}, []);
+
 
   /* CLICK OUTSIDE */
   useEffect(() => {
@@ -63,11 +74,20 @@ export default function AdminNotificationBell() {
     await fetchNotifications();
   };
 
-  const markAsRead = async (id) => {
-    await notificationAPI.markAdminAsRead(id);
+  const markAsRead = async (notification) => {
+    if (!notification?.id) return;
+
+    await notificationAPI.markAdminAsRead(notification.id);
+
     fetchNotifications();
     fetchUnreadCount();
+
+    if (notification.entity_type === "order" && notification.entity_id) {
+      navigate(`/admin/orders/${notification.entity_id}`);
+      setOpen(false);
+    }
   };
+
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -99,7 +119,7 @@ export default function AdminNotificationBell() {
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  onClick={() => markAsRead(n.id)}
+                  onClick={() => markAsRead(n)}
                   className={`px-4 py-3 cursor-pointer hover:bg-gray-50 ${
                     !n.is_read ? "bg-blue-50" : ""
                   }`}

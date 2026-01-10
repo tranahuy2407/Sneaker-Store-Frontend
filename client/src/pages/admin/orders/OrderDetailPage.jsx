@@ -23,17 +23,7 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
     const [showWarning, setShowWarning] = useState(false);
-    const [pendingStatus, setPendingStatus] = useState(null);
-const [showCancelModal, setShowCancelModal] = useState(false);
-const [cancelReason, setCancelReason] = useState("");
-const [cancelling, setCancelling] = useState(false);
-const CANCEL_REASONS = [
-  "Đặt nhầm sản phẩm",
-  "Muốn thay đổi sản phẩm",
-  "Thời gian giao hàng quá lâu",
-  "Tìm được giá tốt hơn",
-  "Lý do khác",
-];
+const [pendingStatus, setPendingStatus] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -105,12 +95,12 @@ const confirmUpdateStatus = async () => {
             }}
             />
 
-      {showSuccess && (
-        <SuccessNotification
-          message="Cập nhật trạng thái thành công"
-          onClose={() => setShowSuccess(false)}
-        />
-      )}
+        {showSuccess && (
+          <SuccessNotification
+            message="Cập nhật trạng thái thành công"
+            onClose={() => setShowSuccess(false)}
+          />
+        )}
 
       {/* HEADER */}
       <div className="flex items-center justify-between">
@@ -158,65 +148,6 @@ const confirmUpdateStatus = async () => {
         <option value="Cancelled">Đã huỷ</option>
         </select>
       </div>
-      {["Pending", "Processing"].includes(order.status) && (
-        <button
-          onClick={() => setShowCancelModal(true)}
-          className="px-4 py-2 text-sm font-medium text-red-600 border border-red-500 rounded-md hover:bg-red-50"
-        >
-          Huỷ đơn hàng
-        </button>
-      )}
-{showCancelModal && (
-  <WarningModal
-    open={showCancelModal}
-    title="Huỷ đơn hàng"
-    message={
-      <div className="space-y-3">
-        <p className="text-sm text-gray-600">
-          Vui lòng chọn lý do huỷ đơn:
-        </p>
-
-        {CANCEL_REASONS.map((r) => (
-          <label
-            key={r}
-            className="flex items-center gap-2 text-sm cursor-pointer"
-          >
-            <input
-              type="radio"
-              name="cancelReason"
-              value={r}
-              checked={cancelReason === r}
-              onChange={() => setCancelReason(r)}
-            />
-            {r}
-          </label>
-        ))}
-      </div>
-    }
-    confirmText="Xác nhận huỷ"
-    onConfirm={async () => {
-      if (!cancelReason) return;
-
-      try {
-        setCancelling(true);
-        await orderAPI.cancel(order.id, cancelReason);
-        setOrder({ ...order, status: "Cancelled" });
-        setShowSuccess(true);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setCancelling(false);
-        setShowCancelModal(false);
-        setCancelReason("");
-      }
-    }}
-    onCancel={() => {
-      setShowCancelModal(false);
-      setCancelReason("");
-    }}
-  />
-)}
-
       {/* INFO */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="p-4 space-y-2 bg-white rounded-lg shadow transition-transform duration-300 hover:scale-[1.02]">

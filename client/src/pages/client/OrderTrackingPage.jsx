@@ -15,6 +15,8 @@ import orderAPI from "@/api/order.api";
 import Header from "@/pages/client/components/Header";
 import Footer from "@/pages/client/components/Footer";
 import Navbar from "./components/Navbar";
+import WarningModal from "@/components/WarningModal";
+import SuccessNotification from "@/components/SuccessNotification";
 
 const STATUS_FLOW = [
   { key: "Pending", label: "Đang xử lý", icon: Package },
@@ -29,6 +31,18 @@ export default function OrderTrackingPage() {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCancelWarning, setShowCancelWarning] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showReasonModal, setShowReasonModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const CANCEL_REASONS = [
+    "Đổi ý, không muốn mua nữa",
+    "Đặt nhầm sản phẩm / size",
+    "Thời gian giao hàng quá lâu",
+    "Tìm được giá tốt hơn",
+    "Lý do khác",
+  ];
 
   /* ================= FETCH ORDER ================= */
   useEffect(() => {
@@ -58,7 +72,19 @@ export default function OrderTrackingPage() {
 
     return () => socketRef.current.disconnect();
   }, [order?.id]);
+      const handleCancelOrder = async () => {
+      try {
+        await orderAPI.cancel(order.id, cancelReason);
 
+        setOrder((prev) => ({ ...prev, status: "Cancelled" }));
+        setShowCancelWarning(false);
+        setShowSuccess(true);
+      } catch (error) {
+        alert("Huỷ đơn thất bại");
+      }
+    };
+
+      
   if (loading) {
     return (
       <>
@@ -207,6 +233,29 @@ export default function OrderTrackingPage() {
                 </div>
               ))}
             </div>
+
+            {/* ===== CANCEL BUTTON ===== */}
+            {order.status === "Pending" && (
+              <>
+                <hr className="my-5" />
+
+                <div className="flex justify-end">
+                 <button
+                  onClick={() => setShowReasonModal(true)}
+                  className="px-6 py-2 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700"
+                >
+                  Huỷ đơn hàng
+                </button>
+
+                </div>
+              </>
+            )}
+
+            {order.status === "Cancelled" && (
+              <p className="mt-4 font-semibold text-red-500">
+                Đơn hàng đã bị huỷ
+              </p>
+            )}
           </div>
         </div>
 
@@ -238,6 +287,76 @@ export default function OrderTrackingPage() {
       </div>
 
       <Footer />
+        {showReasonModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-full max-w-md p-6 bg-white rounded-xl">
+              <h2 className="mb-4 text-lg font-semibold">Huỷ đơn hàng</h2>
+
+              <p className="mb-3 text-sm text-gray-600">
+                Vui lòng chọn lý do huỷ đơn:
+              </p>
+
+              <div className="space-y-2">
+                {CANCEL_REASONS.map((reason) => (
+                  <label
+                    key={reason}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="cancelReason"
+                      value={reason}
+                      checked={cancelReason === reason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                    />
+                    <span>{reason}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setShowReasonModal(false)}
+                  className="px-4 py-2 text-gray-700 border rounded-lg"
+                >
+                  Đóng
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (!cancelReason) {
+                      alert("Vui lòng chọn lý do huỷ đơn");
+                      return;
+                    }
+                    setShowReasonModal(false);
+                    setShowCancelWarning(true);
+                  }}
+                  className="px-4 py-2 font-semibold text-white bg-red-600 rounded-lg"
+                >
+                  Huỷ đơn
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <WarningModal
+        open={showCancelWarning}
+        title="Xác nhận huỷ đơn"
+        message="Bạn có chắc chắn muốn huỷ đơn hàng này không?"
+        confirmText="Xác nhận huỷ"
+        onCancel={() => setShowCancelWarning(false)}
+        onConfirm={handleCancelOrder}
+      />
+
+
+
+      {showSuccess && (
+        <SuccessNotification
+          message="Huỷ đơn hàng thành công!"
+          onClose={() => setShowSuccess(false)}
+        />
+      )}
     </>
   );
 }
