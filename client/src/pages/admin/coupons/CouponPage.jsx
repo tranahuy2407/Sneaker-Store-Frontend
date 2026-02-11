@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Gift,
+  Ticket,
   Plus,
   Search,
   Filter,
@@ -11,46 +11,46 @@ import {
   Home,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import promotionAPI from "../../../api/promotion.api";
+import couponAPI from "../../../api/coupon.api";
 import Breadcrumb from "../../../components/Breadcrumb";
 import WarningModal from "../../../components/WarningModal";
 import Pagination from "../../../components/Pagination";
 
-export default function PromotionsPage() {
-  const [promotions, setPromotions] = useState([]);
+export default function CouponPage() {
+  const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [warningOpen, setWarningOpen] = useState(false);
-  const [promotionToDelete, setPromotionToDelete] = useState(null);
+  const [couponToDelete, setCouponToDelete] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page")) || 1;
 
-  const fetchPromotions = async () => {
+  const fetchCoupons = async () => {
     try {
       setLoading(true);
-      const res = await promotionAPI.getAll({
+      const res = await couponAPI.getAll({
         search: search || undefined,
         status: status || undefined,
         page,
-        limit: 15,
+        limit: 10,
       });
 
-      setPromotions(res.data?.data || []);
+      setCoupons(res.data?.data || []);
       setTotalPages(res.data?.pagination?.totalPages || 1);
     } catch (error) {
-      console.error("Lỗi khi tải chương trình giảm giá:", error);
+      console.error("Lỗi khi tải coupon:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPromotions();
+    fetchCoupons();
   }, [search, status, page]);
 
   const handlePageChange = (newPage) => {
@@ -63,20 +63,18 @@ export default function PromotionsPage() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchPromotions();
+    await fetchCoupons();
     setTimeout(() => setRefreshing(false), 500);
   };
 
   const handleDelete = async () => {
-    if (!promotionToDelete) return;
+    if (!couponToDelete) return;
     try {
-      await promotionAPI.delete(promotionToDelete.id);
-      setPromotions((prev) =>
-        prev.filter((p) => p.id !== promotionToDelete.id)
-      );
+      await couponAPI.delete(couponToDelete.id);
+      setCoupons((prev) => prev.filter((c) => c.id !== couponToDelete.id));
       setWarningOpen(false);
     } catch (error) {
-      console.error("Lỗi khi xóa chương trình giảm giá:", error);
+      console.error("Lỗi khi xóa coupon:", error);
     }
   };
 
@@ -86,10 +84,10 @@ export default function PromotionsPage() {
       <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:justify-between lg:items-center">
         <div>
           <h1 className="mb-1 text-xl font-bold text-gray-800 sm:text-2xl">
-            Quản Lý Chương Trình Giảm Giá
+            Quản Lý Mã Giảm Giá
           </h1>
           <p className="text-sm text-gray-500 sm:text-base">
-            Quản lý các chương trình giảm giá trong hệ thống
+            Quản lý các coupon trong hệ thống
           </p>
         </div>
 
@@ -101,27 +99,27 @@ export default function PromotionsPage() {
               href: "/admin/dashboard",
             },
             {
-              label: "Giảm giá",
-              icon: <Gift className="w-4 h-4" />,
+              label: "Coupon",
+              icon: <Ticket className="w-4 h-4" />,
             },
           ]}
         />
       </div>
 
-      {/* Danh sách */}
+      {/* List */}
       <div className="p-4 sm:p-6 bg-white rounded-lg shadow">
         <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:justify-between">
           <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-800">
-            <div className="flex items-center justify-center w-6 h-6 bg-purple-100 rounded">
-              <Gift className="w-4 h-4 text-purple-600" />
+            <div className="flex items-center justify-center w-6 h-6 bg-yellow-100 rounded">
+              <Ticket className="w-4 h-4 text-yellow-600" />
             </div>
-            Danh Sách Chương Trình
+            Danh Sách Coupon
           </h2>
 
           <div className="flex gap-3">
             <button
-              onClick={() => navigate("/admin/promotions/add")}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+              onClick={() => navigate("/admin/coupons/add")}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-md hover:bg-yellow-700"
             >
               <Plus className="w-4 h-4" />
               Thêm mới
@@ -132,7 +130,7 @@ export default function PromotionsPage() {
               disabled={refreshing}
               className={`flex items-center gap-2 px-4 py-2 text-sm border rounded-md ${
                 refreshing
-                  ? "bg-purple-100 text-purple-600 border-purple-300"
+                  ? "bg-yellow-100 text-yellow-600 border-yellow-300"
                   : "border-gray-300 text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -152,7 +150,7 @@ export default function PromotionsPage() {
               <div className="flex items-center w-full border rounded-md sm:w-64">
                 <input
                   type="text"
-                  placeholder="Tìm kiếm chương trình..."
+                  placeholder="Tìm mã coupon..."
                   className="flex-1 px-3 py-2 text-sm outline-none"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -168,8 +166,8 @@ export default function PromotionsPage() {
                 onChange={(e) => setStatus(e.target.value)}
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="active">Đang áp dụng</option>
-                <option value="inactive">Ngừng áp dụng</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="inactive">Ngừng</option>
               </select>
             </div>
 
@@ -191,67 +189,73 @@ export default function PromotionsPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-gray-100 border-b">
               <tr>
-                <th className="px-4 py-3">Tên chương trình</th>
+                <th className="px-4 py-3">Mã</th>
+                <th className="px-4 py-3 text-center">Loại</th>
+                <th className="px-4 py-3 text-center">Giá trị</th>
+                <th className="px-4 py-3 text-center">Đã dùng</th>
+                <th className="px-4 py-3 text-center">Hiệu lực</th>
                 <th className="px-4 py-3 text-center">Trạng thái</th>
-                <th className="px-4 py-3 text-center">Ngày bắt đầu</th>
-                <th className="px-4 py-3 text-center">Ngày kết thúc</th>
                 <th className="px-4 py-3 text-center">Hành động</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="py-6 text-center">
-                    <RefreshCcw className="inline w-4 h-4 animate-spin mr-2" />
+                  <td colSpan="7" className="py-6 text-center">
+                    <RefreshCcw className="inline w-4 h-4 mr-2 animate-spin" />
                     Đang tải dữ liệu...
                   </td>
                 </tr>
-              ) : promotions.length > 0 ? (
-                promotions.map((p) => (
-                  <tr key={p.id} className="border-b hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{p.name}</td>
+              ) : coupons.length > 0 ? (
+                coupons.map((c) => (
+                  <tr key={c.id} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-3 font-semibold text-purple-700">{c.code}</td>
                     <td className="px-4 py-3 text-center">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            p.status === "Active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {p.status === "Active" ? "Đang áp dụng" : "Ngừng"}
-                        </span>
-                      </td>
-
-                    <td className="px-4 py-3 text-center">
-                      {new Date(p.start_date).toLocaleDateString("vi-VN")}
+                      {c.type === "PERCENT" ? "Phần trăm" : "Tiền mặt"}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {new Date(p.end_date).toLocaleDateString("vi-VN")}
+                      {c.type === "PERCENT"
+                        ? `${c.value}%`
+                        : c.value.toLocaleString() + "₫"}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex justify-center gap-3">
+                      {c.used_count}/{c.usage_limit}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {new Date(c.start_date).toLocaleDateString("vi-VN")} -{" "}
+                      {new Date(c.end_date).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          c.is_active
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        {c.is_active ? "Hoạt động" : "Ngừng"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center gap-2">
                         <button
-                          onClick={() =>
-                            navigate(`/admin/promotions/${p.id}/detail`)
-                          }
-                          className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-full"
+                          onClick={() => navigate(`/admin/coupons/${c.id}/detail`)}
+                          className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg"
                         >
                           <Eye size={18} />
                         </button>
                         <button
-                          onClick={() =>
-                            navigate(`/admin/promotions/${p.id}/edit`)
-                          }
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
+                          onClick={() => navigate(`/admin/coupons/${c.id}/edit`)}
+                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
                         >
                           <Edit3 size={18} />
                         </button>
                         <button
                           onClick={() => {
-                            setPromotionToDelete(p);
+                            setCouponToDelete(c);
                             setWarningOpen(true);
                           }}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-full"
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -261,8 +265,8 @@ export default function PromotionsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="py-6 text-center text-gray-500">
-                    Không có chương trình giảm giá nào.
+                  <td colSpan="7" className="py-6 text-center text-gray-500">
+                    Không có coupon nào.
                   </td>
                 </tr>
               )}
@@ -280,7 +284,7 @@ export default function PromotionsPage() {
       <WarningModal
         open={warningOpen}
         title="Xác nhận xóa"
-        message={`Bạn có chắc muốn xóa chương trình "${promotionToDelete?.name}"?`}
+        message={`Bạn có chắc muốn xóa coupon "${couponToDelete?.code}"?`}
         onConfirm={handleDelete}
         onCancel={() => setWarningOpen(false)}
       />

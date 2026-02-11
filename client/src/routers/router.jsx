@@ -35,18 +35,27 @@ import CheckoutPage from "@/pages/client/CheckoutPage.jsx";
 import ShippingCostPage from "@/pages/admin/shipping-costs/ShippingCostPage.jsx";
 import OrderDetailPage from "@/pages/admin/orders/OrderDetailPage.jsx";
 import OrderTrackingPage from "@/pages/client/OrderTrackingPage.jsx";
+import OrderSuccessPage from "@/pages/client/OrderSuccessPage.jsx";
+import TrackOrderPage from "@/pages/client/TrackOrderPage.jsx";
+import CouponPage from "@/pages/admin/coupons/CouponPage.jsx";
+import PromotionDetailPage from "@/pages/admin/promotions/PromotionDetailPage.jsx";
+import UpdatePromotionPage from "@/pages/admin/promotions/UpdatePromotionPage.jsx";
+import AddPromotionPage from "@/pages/admin/promotions/AddPromotionPage.jsx";
+import UpdateCouponPage from "@/pages/admin/coupons/UpdateCouponPage.jsx";
+import CouponDetailPage from "@/pages/admin/coupons/CouponDetailPage.jsx";
+import AddCouponPage from "@/pages/admin/coupons/AddCouponPage.jsx";
 
 export const routes = [
-  //Client 
+  //Client
   {
     path: "/",
-    element: <Home />
+    element: <Home />,
   },
   {
     path: "/login",
     element: <Login />,
   },
-    {
+  {
     path: "/register",
     element: <Register />,
   },
@@ -59,18 +68,12 @@ export const routes = [
     ),
   },
   {
-    path:"/orders/:id/tracking",
-    element:(
-        <ProtectedRouteUser>
-          <OrderTrackingPage />
-        </ProtectedRouteUser>
-    )
+    path: "/orders/:id/tracking",
+    element: <OrderTrackingPage />,
   },
   {
-    path:"/cart",
-    element:(
-        <CartPage />
-    )
+    path: "/cart",
+    element: <CartPage />,
   },
   {
     path: "/san-pham/:slug",
@@ -78,17 +81,26 @@ export const routes = [
   },
   {
     path: "/danh-muc/:slug",
-    element: <CategoryPage /> 
+    element: <CategoryPage />,
   },
   {
-      path: "/search",
-      element: <SearchPage />  
-    },
-    {
-      path: "/checkout",
-      element: <CheckoutPage />
-    },
-    
+    path: "/search",
+    element: <SearchPage />,
+  },
+  {
+    path: "/checkout",
+    element: <CheckoutPage />,
+  },
+  {
+    path: "/order-success",
+    element: <OrderSuccessPage />,
+  },
+
+  {
+    path: "/track-order",
+    element: <TrackOrderPage />,
+  },
+
   // Admin Dashboard Routes
   {
     path: "/admin/login",
@@ -184,6 +196,76 @@ export const routes = [
       <ProtectedRoute>
         <AdminLayout>
           <PromotionsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+   {
+    path: "/admin/promotions/add",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddPromotionPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/promotions/:id/detail",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <PromotionDetailPage />
+         </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/promotions/:id/edit",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <UpdatePromotionPage />
+         </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+ {
+    path: "/admin/coupons",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <CouponPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+   {
+    path: "/admin/coupons/add",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddCouponPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/coupons/:id/edit",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <UpdateCouponPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/coupons/:id/detail",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <CouponDetailPage />
         </AdminLayout>
       </ProtectedRoute>
     ),

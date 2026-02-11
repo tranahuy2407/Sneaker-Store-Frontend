@@ -251,9 +251,23 @@ const handlePlaceOrder = async () => {
 
     setSuccessMsg("Đặt hàng thành công !");
     await clearCart();
+
     setTimeout(() => {
-      navigate("/");
-    }, 1500);
+      navigate("/order-success", {
+        state: {
+          email: shippingInfo.email,
+          total: subtotal,
+          items: items.map((i) => ({
+            name: i.product.name,
+            size: i.size,
+            quantity: i.quantity,
+            price: i.price,
+          })),
+        },
+        replace: true,
+      });
+    }, 1200);
+
   } catch (err) {
     setWarningMsg(
       err.response?.data?.message || "Đặt hàng thất bại"

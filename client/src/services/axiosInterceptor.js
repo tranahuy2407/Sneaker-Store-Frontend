@@ -1,10 +1,6 @@
 import { apiClient } from "./apiClient";
 import { adminAPI } from "../api/admin.api";
 import { userAPI } from "../api/user.api";
-import {
-  hasUserRefreshToken,
-  hasAdminRefreshToken,
-} from "./cookieUtils";
 
 export const setupAxiosInterceptors = () => {
   apiClient.interceptors.response.use(
@@ -12,9 +8,7 @@ export const setupAxiosInterceptors = () => {
     async (error) => {
       const originalRequest = error.config;
 
-      const requestUrl = originalRequest.baseURL
-        ? originalRequest.baseURL + originalRequest.url
-        : originalRequest.url;
+      const requestUrl = originalRequest.url;
 
       const isGuestOrder = requestUrl.includes("/orders");
 
@@ -26,24 +20,20 @@ export const setupAxiosInterceptors = () => {
       ) {
         originalRequest._retry = true;
 
-        // ===== ADMIN =====
-        if (requestUrl.includes("/admin") && hasAdminRefreshToken()) {
-          try {
+        try {
+          // ===== ADMIN =====
+          if (requestUrl.includes("/admin")) {
             await adminAPI.refreshToken();
             return apiClient(originalRequest);
-          } catch (err) {
-            console.error("Admin session expired, please login again!");
           }
-        }
 
-        // ===== USER =====
-        if (!requestUrl.includes("/user") && hasUserRefreshToken()) {
-          try {
+          // ===== USER =====
+          if (requestUrl.includes("/user")) {
             await userAPI.refreshToken();
             return apiClient(originalRequest);
-          } catch (err) {
-            console.error("User session expired, please login again!");
           }
+        } catch (err) {
+          console.error("Session expired");
         }
       }
 

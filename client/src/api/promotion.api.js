@@ -1,35 +1,64 @@
 import { apiClient } from "../services/apiClient";
 
 /**
- * Promotion API calls
- * create/update expect multipart FormData with field 'image'
+ * Promotion API
+ * - create / update: multipart/form-data (image)
+ * - relation: coupons / products
  */
 
 const toFormData = (data) => {
   if (data instanceof FormData) return data;
-  const fd = new FormData();
-  Object.keys(data || {}).forEach((key) => {
-    const value = data[key];
-    if (value instanceof File || value instanceof Blob) fd.append(key, value);
-    else if (Array.isArray(value)) value.forEach((v) => fd.append(key, v));
-    else if (value != null && typeof value === "object")
-      fd.append(key, JSON.stringify(value));
-    else if (value !== undefined) fd.append(key, value);
+
+  const formData = new FormData();
+
+  Object.entries(data || {}).forEach(([key, value]) => {
+    if (value instanceof File || value instanceof Blob) {
+      formData.append(key, value);
+    } else if (Array.isArray(value)) {
+      value.forEach((v) => formData.append(key, v));
+    } else if (value !== null && typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+    } else if (value !== undefined) {
+      formData.append(key, value);
+    }
   });
-  return fd;
+
+  return formData;
 };
 
 export const promotionAPI = {
-  getAll: (params) => apiClient.get("/promotions", { params }),
-  getById: (id) => apiClient.get(`/promotions/${id}`),
 
-  create: (promotionData) =>
-    apiClient.post(`/promotions`, toFormData(promotionData)),
+  getAll(params) {
+    return apiClient.get("/promotions", { params });
+  },
 
-  update: (id, promotionData) =>
-    apiClient.put(`/promotions/${id}`, toFormData(promotionData)),
+  getById(id) {
+    return apiClient.get(`/promotions/${id}`);
+  },
 
-  delete: (id) => apiClient.delete(`/promotions/${id}`),
+  create(data) {
+    return apiClient.post("/promotions", toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  update(id, data) {
+    return apiClient.put(`/promotions/${id}`, toFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  delete(id) {
+    return apiClient.delete(`/promotions/${id}`);
+  },
+
+  addCoupons(promotionId, couponIds = []) {
+    return apiClient.post(
+      `/promotions/${promotionId}/coupons`,
+      { couponIds }
+    );
+  },
+
 };
 
 export default promotionAPI;

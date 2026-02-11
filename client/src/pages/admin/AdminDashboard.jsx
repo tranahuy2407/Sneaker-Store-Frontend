@@ -4,12 +4,12 @@ import { logoutAdmin } from "../../redux/slices/authSlice";
 import AdminLayout from "../../components/admin/AdminLayout";
 import React, { useEffect, useState } from "react";
 import productAPI from "@/api/product.api";
-import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
+import orderAPI from "@/api/order.api";
+import userAPI from "@/api/user.api";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, loading } = useSelector((state) => state.auth);
 
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -20,6 +20,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchProducts();
+    fetchOrder();
+    fetchCustomers();
   }, []);
 
   const fetchProducts = async () => {
@@ -35,43 +37,37 @@ export default function AdminDashboard() {
       console.error("Dashboard error:", err.response?.data || err);
     }
   };
+  
+  const fetchOrder = async () => {
+    try {
+      const res = await orderAPI.getAll({ limit: 1000 });
+      const orderList = res.data.data || [];     
+      setStats((prev) => ({
+        ...prev,
+        totalOrders: orderList.length,
+      }));
+    } catch (err) {
+      console.error("Dashboard error:", err.response?.data || err);
+    }
+  };
+  
+  const fetchCustomers = async () => {
+    try {
+      const res = await userAPI.getAllUsers({ limit: 1000 });
+      const customerList = res.data.data || [];
+      setStats((prev) => ({
+        ...prev,
+        totalCustomers: customerList.length,
+      }));
+    } catch (err) {
 
-  const handleLogout = () => {
-    dispatch(logoutAdmin()).then(() => {
-      navigate("/admin/login", { replace: true });
-    });
+      console.error("Dashboard error:", err.response?.data || err);
+    }
   };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* HEADER */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Admin Dashboard
-            </h1>
-            {user && (
-              <p className="mt-1 text-sm text-gray-600">
-                Xin chào, <span className="font-semibold">{user.username}</span>!
-              </p>
-            )}
-          </div>
-
-         <div className="flex items-center gap-4">
-          <AdminNotificationBell />
-
-          <button
-            onClick={handleLogout}
-            disabled={loading}
-            className="px-4 py-2 text-white transition bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
-          >
-            {loading ? "Đang đăng xuất..." : "Đăng xuất"}
-          </button>
-        </div>
-
-        </div>
-
         {/* DASHBOARD CARDS */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           

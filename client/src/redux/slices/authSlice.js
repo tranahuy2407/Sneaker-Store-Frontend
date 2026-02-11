@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminAPI } from "../../api/admin.api";
-import { hasAdminRefreshToken } from "../../services/cookieUtils";
 
 export const loginAdmin = createAsyncThunk(
   "auth/loginAdmin",
@@ -34,29 +33,23 @@ export const checkAuthStatus = createAsyncThunk(
   "auth/checkAuthStatus",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await adminAPI.getProfile();
-      if (response.data.status === "success") {
-        return { user: response.data.data, isAuthenticated: true };
-      }
-      return rejectWithValue("Not authenticated");
+      const res = await adminAPI.getProfile();
+      return { user: res.data.data, isAuthenticated: true };
     } catch (error) {
       if (error.response?.status === 401) {
-        if (hasAdminRefreshToken()) {
-          try {
-            await adminAPI.refreshToken();
-            const retry = await adminAPI.getProfile();
-            if (retry.data.status === "success") {
-              return { user: retry.data.data, isAuthenticated: true };
-            }
-          } catch {
-            return rejectWithValue("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại !");
-          }
+        try {
+          await adminAPI.refreshToken();
+          const retry = await adminAPI.getProfile();
+          return { user: retry.data.data, isAuthenticated: true };
+        } catch {
+          return rejectWithValue("Phiên đăng nhập hết hạn");
         }
       }
       return rejectWithValue("Không xác thực");
     }
   }
 );
+
 
 const initialState = {
   user: null,

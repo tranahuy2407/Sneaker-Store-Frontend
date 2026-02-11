@@ -152,20 +152,23 @@ export default function ProfilePage() {
                   <td className="p-3 font-semibold text-red-500">
                     {order.total_amount.toLocaleString()}đ
                   </td>
-
-                  <td className="p-3 text-center">
-                    <span
-                      className={`px-2 py-1 rounded text-sm ${
-                        order.payment_status === "paid"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {order.payment_status === "paid"
-                        ? "Đã thanh toán"
-                        : "Chưa thanh toán"}
-                    </span>
-                  </td>
+                    <td className="p-3 text-center">
+                      <span
+                        className={`px-2 py-1 rounded text-sm ${
+                          order.status === "Completed"
+                            ? "bg-green-100 text-green-700"
+                            : order.status === "Cancelled"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {order.status === "Completed"
+                          ? "Đã thanh toán"
+                          : order.status === "Cancelled"
+                          ? "Đã huỷ"
+                          : "Chưa thanh toán"}
+                      </span>
+                    </td>
 
                   <td className="p-3 text-center">
                     <Link
