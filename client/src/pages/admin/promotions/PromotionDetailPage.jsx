@@ -29,7 +29,7 @@ export default function PromotionDetailPage() {
 
     fetchPromotion();
   }, [id]);
-
+  
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-500">
@@ -89,12 +89,12 @@ export default function PromotionDetailPage() {
 
             <span
               className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                promotion.status === "Active"
+                promotion.is_active === true
                   ? "bg-green-100 text-green-700"
                   : "bg-gray-200 text-gray-600"
               }`}
             >
-              {promotion.status === "Active" ? "Đang áp dụng" : "Ngừng áp dụng"}
+              {promotion.is_active === true ? "Đang áp dụng" : "Ngừng áp dụng"}
             </span>
 
             <div className="grid grid-cols-2 gap-4 mt-4">
@@ -102,6 +102,7 @@ export default function PromotionDetailPage() {
                 <Calendar className="w-5 h-5 text-blue-500" />
                 <div>
                   <p className="text-xs text-gray-500">Ngày bắt đầu</p>
+
                   <p className="font-semibold">
                     {promotion.start_date
                       ? new Date(promotion.start_date).toLocaleDateString("vi-VN")
@@ -138,7 +139,7 @@ export default function PromotionDetailPage() {
               <Ticket className="w-5 h-5 text-purple-600" />
               Mã giảm giá áp dụng
             </h3>
-
+      
             {promotion.coupons?.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {promotion.coupons.map((c) => (

@@ -20,7 +20,7 @@ export default function PromotionsPage() {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [isActive, setIsActive] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [warningOpen, setWarningOpen] = useState(false);
   const [promotionToDelete, setPromotionToDelete] = useState(null);
@@ -35,7 +35,7 @@ export default function PromotionsPage() {
       setLoading(true);
       const res = await promotionAPI.getAll({
         search: search || undefined,
-        status: status || undefined,
+        isActive: isActive !== "" ? isActive : undefined,
         page,
         limit: 15,
       });
@@ -48,18 +48,17 @@ export default function PromotionsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchPromotions();
-  }, [search, status, page]);
+    useEffect(() => {
+      fetchPromotions();
+    }, [search, isActive, page]);
 
   const handlePageChange = (newPage) => {
-    const params = {};
-    if (search) params.search = search;
-    if (status) params.status = status;
-    params.page = newPage;
-    setSearchParams(params);
-  };
+  const params = {};
+  if (search) params.search = search;
+  if (isActive !== "") params.isActive = isActive;
+  params.page = newPage;
+  setSearchParams(params);
+};
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -162,22 +161,22 @@ export default function PromotionsPage() {
                 </div>
               </div>
 
-              <select
+            <select
                 className="px-3 py-2 text-sm border rounded-md sm:w-48"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
+                value={isActive}
+                onChange={(e) => setIsActive(e.target.value)}
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="active">Đang áp dụng</option>
-                <option value="inactive">Ngừng áp dụng</option>
+                <option value="true">Đang áp dụng</option>
+                <option value="false">Ngừng áp dụng</option>
               </select>
             </div>
 
             <button
               onClick={() => {
-                setSearch("");
-                setStatus("");
-              }}
+              setSearch("");
+              setIsActive("");
+            }}
               className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-gray-100"
             >
               <Filter className="w-4 h-4" />
@@ -211,15 +210,15 @@ export default function PromotionsPage() {
                   <tr key={p.id} className="border-b hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">{p.name}</td>
                     <td className="px-4 py-3 text-center">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            p.status === "Active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {p.status === "Active" ? "Đang áp dụng" : "Ngừng"}
-                        </span>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          p.is_active === true
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {p.is_active === true ? "Đang áp dụng" : "Ngừng"}
+                      </span>
                       </td>
 
                     <td className="px-4 py-3 text-center">
