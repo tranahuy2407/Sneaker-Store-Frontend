@@ -9,7 +9,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [initialized, setInitialized] = useState(false);
   const [showCartPopup, setShowCartPopup] = useState(false);
-
+  const [coupon, setCoupon] = useState(null);
   const isAuthenticated = useSelector(
     (state) => state.userAuth.isAuthenticated
   );
@@ -157,7 +157,10 @@ useEffect(() => {
     await cartAPI.clearCart();
     setCart([]);
   }
+  setCoupon(null);
 };
+
+  const clearCoupon = () => setCoupon(null);
 
   return (
     <CartContext.Provider
@@ -168,7 +171,10 @@ useEffect(() => {
         updateQuantity,
         showCartPopup,
         setShowCartPopup,
-        clearCart
+        clearCart,
+        coupon,
+        setCoupon,
+        clearCoupon,
       }}
     >
       {children}

@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronRight,
   Tags,
+  Star,
 } from "lucide-react";
 import logo from "../../assets/sneaker-logo.jfif";
 
@@ -72,6 +73,22 @@ const menu = [
       {
         label: "Mã giảm giá",
         href: "/admin/coupons",
+      },
+    ],
+  },
+  {
+    label: "Quản Lý Đánh Giá",
+    icon: <Star className="w-5 h-5" />,
+    href: "#",
+    hasSubmenu: true,
+    submenu: [
+      {
+        label: "Đánh giá sản phẩm",
+        href: "/admin/products/reviews",
+      },
+      {
+        label: "Đánh giá cửa hàng",
+        href: "/admin/stores/reviews",
       },
     ],
   },

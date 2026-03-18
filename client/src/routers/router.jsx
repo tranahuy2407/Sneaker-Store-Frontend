@@ -44,6 +44,9 @@ import AddPromotionPage from "@/pages/admin/promotions/AddPromotionPage.jsx";
 import UpdateCouponPage from "@/pages/admin/coupons/UpdateCouponPage.jsx";
 import CouponDetailPage from "@/pages/admin/coupons/CouponDetailPage.jsx";
 import AddCouponPage from "@/pages/admin/coupons/AddCouponPage.jsx";
+import CustomerDetail from "@/pages/admin/customers/CustomerDetail.jsx";
+import AdminReviewProductPage from "@/pages/admin/reviews/AdminReviewProductPage.jsx";
+import AdminReviewStorePage from "@/pages/admin/reviews/AdminReviewStorePage.jsx";
 
 export const routes = [
   //Client
@@ -165,6 +168,26 @@ export const routes = [
         </AdminLayout>
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/admin/products/reviews",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AdminReviewProductPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),  
+  },
+  {
+    path: "/admin/stores/reviews",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AdminReviewStorePage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),  
   },
 
   // Warehouse Routes
@@ -339,6 +362,17 @@ export const routes = [
       </ProtectedRoute>
     ),
   },
+    {
+    path: "/admin/customers/:id/detail",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <CustomerDetail />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+
 
   // ============ THUỘC TÍNH SẢN PHẨM ============
 

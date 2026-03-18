@@ -112,6 +112,7 @@ const userAuthSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.checkingAuth = false;
+        state.profileLoaded = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -130,6 +131,7 @@ const userAuthSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.checkingAuth = false;
+        state.profileLoaded = true;
       })
       .addCase(checkUserAuth.rejected, (state) => {
         state.user = null;

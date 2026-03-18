@@ -9,6 +9,8 @@ import orderAPI from "@/api/order.api";
 import SuccessNotification from "@/components/SuccessNotification";
 import WarningNotification from "@/components/WarningNotification";
 import { refreshUserProfile } from "@/redux/slices/userAuthSlice";
+import CouponModal from "./components/CouponModal";
+import { Ticket } from "lucide-react";
 
 const normalize = (str = "") =>
   str
@@ -29,7 +31,8 @@ const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, coupon, setCoupon, clearCoupon } = useCart();
+  const [openCoupon, setOpenCoupon] = useState(false);
   const { isAuthenticated, user } = useSelector((s) => s.userAuth);
   const [items, setItems] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -54,14 +57,14 @@ const CheckoutPage = () => {
   const [shippingInfo, setShippingInfo] = useState({
     name: "",
     phone: "",
-    email: "",  
+    email: "",
     address: "",
     province: "",
     district: "",
     ward: "",
     note: "",
   });
-    const buildShippingPayload = () => ({
+  const buildShippingPayload = () => ({
     name: shippingInfo.name,
     phone: shippingInfo.phone,
     email: shippingInfo.email,
@@ -75,26 +78,26 @@ const CheckoutPage = () => {
   const isUsingSavedAddress = selectedAddressId !== "other";
 
   useEffect(() => {
-  if (location.state?.buyNow && location.state?.items) {
-    setItems(location.state.items);
-  } else {
-    setItems(
-      cart.map((i) => ({
-        product_size_id: i.productSizeId,  
-        quantity: i.quantity,
-        price: i.product.discountPrice ?? i.product.price,
-        product: i.product,
-        size: i.size,
-      }))
-    );
-  }
-}, [cart, location]);
+    if (location.state?.buyNow && location.state?.items) {
+      setItems(location.state.items);
+    } else {
+      setItems(
+        cart.map((i) => ({
+          product_size_id: i.productSizeId,
+          quantity: i.quantity,
+          price: i.product.discountPrice ?? i.product.price,
+          product: i.product,
+          size: i.size,
+        })),
+      );
+    }
+  }, [cart, location]);
 
-useEffect(() => {
-  if (isAuthenticated && !user?.addresses) {
-    dispatch(refreshUserProfile());
-  }
-}, [isAuthenticated, user, dispatch]);
+  useEffect(() => {
+    if (isAuthenticated && !user?.addresses) {
+      dispatch(refreshUserProfile());
+    }
+  }, [isAuthenticated, user, dispatch]);
   useEffect(() => {
     fetchProvinces().then(setProvinces);
   }, []);
@@ -113,80 +116,78 @@ useEffect(() => {
     }
     fetchWards(districtId).then(setWards);
   }, [districtId]);
-useEffect(() => {
-  if (!isAuthenticated || !user) return;
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
 
-  setShippingInfo((p) => ({
-    ...p,
-    email: user.email || "",
-  }));
-}, [isAuthenticated, user]);
+    setShippingInfo((p) => ({
+      ...p,
+      email: user.email || "",
+    }));
+  }, [isAuthenticated, user]);
 
-useEffect(() => {
-  if (!profileLoaded) return;
-  if (!addressBook.length) return;
+  useEffect(() => {
+    if (!profileLoaded) return;
+    if (!addressBook.length) return;
 
-  const def = addressBook.find((a) => a.is_default);
-  if (def) {
-    setSelectedAddressId(def.id);
-  }
-}, [profileLoaded, addressBook]);
+    const def = addressBook.find((a) => a.is_default);
+    if (def) {
+      setSelectedAddressId(def.id);
+    }
+  }, [profileLoaded, addressBook]);
 
+  useEffect(() => {
+    if (
+      selectedAddressId === "other" ||
+      !provinces.length ||
+      !addressBook.length
+    )
+      return;
 
+    const addr = addressBook.find(
+      (a) => String(a.id) === String(selectedAddressId),
+    );
+    if (!addr) return;
 
-useEffect(() => {
-  if (
-    selectedAddressId === "other" ||
-    !provinces.length ||
-    !addressBook.length
-  )
-    return;
+    setSelectedAddress(addr);
 
-  const addr = addressBook.find(
-    (a) => String(a.id) === String(selectedAddressId)
-  );
-  if (!addr) return;
+    const pId = getIdByName(provinces, addr.city);
+    setProvinceId(pId);
 
-  setSelectedAddress(addr);
+    setShippingInfo((prev) => ({
+      ...prev,
+      name: addr.receiver_name || "",
+      phone: addr.receiver_phone || "",
+      address: addr.address_line || "",
+      province: addr.city || "",
+      district: "",
+      ward: "",
+      note: addr.note || "",
+    }));
+  }, [selectedAddressId, provinces, addressBook]);
 
-  const pId = getIdByName(provinces, addr.city);
-  setProvinceId(pId);
+  useEffect(() => {
+    if (!districts.length || !selectedAddress) return;
 
-  setShippingInfo((prev) => ({
-    ...prev,
-    name: addr.receiver_name || "",
-    phone: addr.receiver_phone || "",
-    address: addr.address_line || "",
-    province: addr.city || "",
-    district: "",
-    ward: "",
-    note: addr.note || "",
-  }));
-}, [selectedAddressId, provinces, addressBook]);
+    const dId = getIdByName(districts, selectedAddress.district);
+    setDistrictId(dId);
 
-useEffect(() => {
-  if (!districts.length || !selectedAddress) return;
+    setShippingInfo((p) => ({
+      ...p,
+      district: selectedAddress.district || "",
+    }));
+  }, [districts, selectedAddress]);
 
-  const dId = getIdByName(districts, selectedAddress.district);
-  setDistrictId(dId);
+  useEffect(() => {
+    if (!wards.length || !selectedAddress) return;
 
-  setShippingInfo((p) => ({
-    ...p,
-    district: selectedAddress.district || "",
-  }));
-}, [districts, selectedAddress]);
+    const wId = getIdByName(wards, selectedAddress.ward);
+    setWardId(wId);
 
-useEffect(() => {
-  if (!wards.length || !selectedAddress) return;
-
-  const wId = getIdByName(wards, selectedAddress.ward);
-  setWardId(wId);
-
-  setShippingInfo((p) => ({
-    ...p,
-    ward: selectedAddress.ward || "",
-  }));
-}, [wards, selectedAddress]);
+    setShippingInfo((p) => ({
+      ...p,
+      ward: selectedAddress.ward || "",
+    }));
+  }, [wards, selectedAddress]);
 
   useEffect(() => {
     paymentAPI.getAll({ is_active: true }).then((res) => {
@@ -200,80 +201,82 @@ useEffect(() => {
         const price = i.product.discountPrice ?? i.product.price ?? 0;
         return sum + price * i.quantity;
       }, 0),
-    [items]
+    [items],
   );
+
+  const discountAmount = coupon?.data?.discountAmount || 0;
+  const finalTotal = Math.max(subtotal - discountAmount, 0);
+  const productIds = useMemo(() => cart.map((i) => i.product?.id || i.id), [cart]);
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate("/login");
   };
 
-const handlePlaceOrder = async () => {
-  if (!paymentMethod) {
-    setWarningMsg("Vui lòng chọn phương thức thanh toán");
-    return;
-  }
+  const handlePlaceOrder = async () => {
+    if (!paymentMethod) {
+      setWarningMsg("Vui lòng chọn phương thức thanh toán");
+      return;
+    }
 
-  if (!shippingInfo.email) {
-    setWarningMsg("Vui lòng nhập email nhận đơn hàng");
-    return;
-  }
+    if (!shippingInfo.email) {
+      setWarningMsg("Vui lòng nhập email nhận đơn hàng");
+      return;
+    }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(shippingInfo.email)) {
-    setWarningMsg("Email không đúng định dạng");
-    return;
-  }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(shippingInfo.email)) {
+      setWarningMsg("Email không đúng định dạng");
+      return;
+    }
 
-  if (
-    !shippingInfo.name ||
-    !shippingInfo.phone ||
-    !shippingInfo.address ||
-    !shippingInfo.province ||
-    !shippingInfo.district ||
-    !shippingInfo.ward
-  ) {
-    setWarningMsg("Vui lòng nhập đầy đủ thông tin giao hàng");
-    return;
-  }
+    if (
+      !shippingInfo.name ||
+      !shippingInfo.phone ||
+      !shippingInfo.address ||
+      !shippingInfo.province ||
+      !shippingInfo.district ||
+      !shippingInfo.ward
+    ) {
+      setWarningMsg("Vui lòng nhập đầy đủ thông tin giao hàng");
+      return;
+    }
 
-  try {
-    await orderAPI.create({
-      items: items.map((i) => ({
-        product_id: i.product.id,  
-        product_size_id: i.product_size_id,
-        quantity: i.quantity,
-        price: i.price,
-      })),
-      payment_method_id: paymentMethod,
-      shippingInfo: buildShippingPayload(),
-      total: subtotal,
-    });
-
-    setSuccessMsg("Đặt hàng thành công !");
-    await clearCart();
-
-    setTimeout(() => {
-      navigate("/order-success", {
-        state: {
-          email: shippingInfo.email,
-          total: subtotal,
-          items: items.map((i) => ({
-            name: i.product.name,
-            size: i.size,
-            quantity: i.quantity,
-            price: i.price,
-          })),
-        },
-        replace: true,
+    try {
+      await orderAPI.create({
+        items: items.map((i) => ({
+          product_id: i.product.id,
+          product_size_id: i.product_size_id,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+        payment_method_id: paymentMethod,
+        shippingInfo: buildShippingPayload(),
+        total: finalTotal,
+        coupon_code: coupon?.data?.coupon?.code || null,
       });
-    }, 1200);
 
-  } catch (err) {
-    setWarningMsg(
-      err.response?.data?.message || "Đặt hàng thất bại"
-    );
-  }
-};
+      setSuccessMsg("Đặt hàng thành công !");
+      await clearCart();
+
+      setTimeout(() => {
+        navigate("/order-success", {
+          state: {
+            email: shippingInfo.email,
+            total: finalTotal,
+            items: items.map((i) => ({
+              name: i.product.name,
+              size: i.size,
+              quantity: i.quantity,
+              price: i.price,
+            })),
+          },
+          replace: true,
+        });
+      }, 1200);
+    } catch (err) {
+      setWarningMsg(err.response?.data?.message || "Đặt hàng thất bại");
+    }
+  };
 
   /* ================== UI ================== */
   return (
@@ -299,7 +302,7 @@ const handlePlaceOrder = async () => {
                   setShippingInfo({
                     name: "",
                     phone: "",
-                    email: isAuthenticated ? user?.email || "" : "", 
+                    email: isAuthenticated ? user?.email || "" : "",
                     address: "",
                     province: "",
                     district: "",
@@ -338,28 +341,26 @@ const handlePlaceOrder = async () => {
                 >
                   Đăng nhập
                 </Link>
-
               )}
             </div>
 
-                        {/* EMAIL */}
-              {isAuthenticated ? (
-                <input
-                  disabled
-                  value={user?.email || ""}
-                  className="w-full p-3 bg-gray-100 border rounded"
-                />
-              ) : (
-                <input
-                  placeholder="Email nhận đơn hàng"
-                  value={shippingInfo.email}
-                  onChange={(e) =>
-                    setShippingInfo((p) => ({ ...p, email: e.target.value }))
-                  }
-                  className="w-full p-3 border rounded"
-                />
-              )}
-
+            {/* EMAIL */}
+            {isAuthenticated ? (
+              <input
+                disabled
+                value={user?.email || ""}
+                className="w-full p-3 bg-gray-100 border rounded"
+              />
+            ) : (
+              <input
+                placeholder="Email nhận đơn hàng"
+                value={shippingInfo.email}
+                onChange={(e) =>
+                  setShippingInfo((p) => ({ ...p, email: e.target.value }))
+                }
+                className="w-full p-3 border rounded"
+              />
+            )}
 
             <input
               disabled={isUsingSavedAddress}
@@ -486,36 +487,34 @@ const handlePlaceOrder = async () => {
           </div>
           <h2 className="text-lg font-semibold">Thanh toán</h2>
 
-   {paymentMethods.map((m) => {
-  const isSelected = paymentMethod === m.id;
+          {paymentMethods.map((m) => {
+            const isSelected = paymentMethod === m.id;
 
-  return (
-    <label
-      key={`pay-${m.id}`}
-      className={`block p-4 border rounded cursor-pointer ${
-        isSelected ? "border-blue-500 bg-blue-50" : ""
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <input
-  type="radio"
-  checked={isSelected}
-  onChange={() => setPaymentMethod(m.id)}
-/>
-        <img src={m.logo} alt={m.name} className="w-8 h-8" />
-        <span className="font-medium">{m.name}</span>
-      </div>
+            return (
+              <label
+                key={`pay-${m.id}`}
+                className={`block p-4 border rounded cursor-pointer ${
+                  isSelected ? "border-blue-500 bg-blue-50" : ""
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    checked={isSelected}
+                    onChange={() => setPaymentMethod(m.id)}
+                  />
+                  <img src={m.logo} alt={m.name} className="w-8 h-8" />
+                  <span className="font-medium">{m.name}</span>
+                </div>
 
-      {isSelected && m.description && (
-        <p className="mt-2 text-sm text-gray-600 ml-7">
-          {m.description}
-        </p>
-      )}
-    </label>
-  );
-})}
-
-  
+                {isSelected && m.description && (
+                  <p className="mt-2 text-sm text-gray-600 ml-7">
+                    {m.description}
+                  </p>
+                )}
+              </label>
+            );
+          })}
         </div>
 
         {/* ================= RIGHT ================= */}
@@ -533,44 +532,110 @@ const handlePlaceOrder = async () => {
               />
               <div className="flex-1">
                 <p>{i.product.name}</p>
-                <p className="text-sm text-gray-500">Size: {i.size}</p>
+                <p className="text-sm font-bold text-gray-500">
+                  Size: {i.size}
+                </p>
               </div>
               <span className="font-semibold">
-                {(i.product.discountPrice ?? i.product.price).toLocaleString()}đ
+                {(i.product.discountPrice ?? i.product.price).toLocaleString()}{" "}
+                đ x {i.quantity}
               </span>
             </div>
           ))}
 
+          {/* COUPON SECTION */}
+          <div className="py-3 border-t">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-4 h-4 text-blue-500" />
+                {coupon ? (
+                  <span className="text-sm font-medium text-green-600">
+                    {coupon.data?.coupon?.code} — Giảm {coupon.data?.discountAmount?.toLocaleString()}đ
+                  </span>
+                ) : (
+                  <span className="text-sm text-gray-500">Chưa có mã giảm giá</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setOpenCoupon(true)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  {coupon ? "Đổi mã" : "Chọn mã"}
+                </button>
+                {coupon && (
+                  <button
+                    onClick={clearCoupon}
+                    className="text-sm text-red-500 hover:underline"
+                  >
+                    Huỷ
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="pt-4 border-t">
             <div className="flex justify-between">
-              <span>Tổng cộng</span>
-              <span className="font-semibold text-blue-600">
+              <span>Tạm tính</span>
+              <span className="font-semibold text-gray-700">
                 {subtotal.toLocaleString()}đ
+              </span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between mt-1">
+                <span className="text-green-600">Mã giảm giá</span>
+                <span className="font-semibold text-green-600">
+                  -{discountAmount.toLocaleString()}đ
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between mt-2">
+              <span className="font-semibold">Tổng cộng</span>
+              <span className="font-bold text-blue-600">
+                {finalTotal.toLocaleString()}đ
               </span>
             </div>
           </div>
 
-          <button
-            onClick={handlePlaceOrder}
-            className="w-full py-3 text-white bg-blue-600 rounded hover:bg-blue-700"
-          >
-            ĐẶT HÀNG
-          </button>
+          <div className="flex gap-3 mt-4">
+            <span
+              onClick={() => navigate("/cart")}
+              className="py-2 text-sm text-blue-600 cursor-pointer hover:underline"
+            >
+              ← Quay về giỏ hàng
+            </span>
+            <button
+              onClick={handlePlaceOrder}
+              className="flex-1 py-3 font-semibold text-white bg-blue-600 rounded hover:bg-blue-700"
+            >
+              ĐẶT HÀNG
+            </button>
+          </div>
         </div>
       </div>
       {successMsg && (
-      <SuccessNotification
-        message={successMsg}
-        onClose={() => setSuccessMsg("")}
-      />
-    )}
+        <SuccessNotification
+          message={successMsg}
+          onClose={() => setSuccessMsg("")}
+        />
+      )}
 
-    {warningMsg && (
-      <WarningNotification
-        message={warningMsg}
-        onClose={() => setWarningMsg("")}
+      {warningMsg && (
+        <WarningNotification
+          message={warningMsg}
+          onClose={() => setWarningMsg("")}
+        />
+      )}
+
+      <CouponModal
+        open={openCoupon}
+        onClose={() => setOpenCoupon(false)}
+        orderTotal={subtotal}
+        productIds={productIds}
+        selectedCode={coupon?.data?.coupon?.code}
+        onApply={(data) => setCoupon(data)}
       />
-    )}
     </div>
   );
 };

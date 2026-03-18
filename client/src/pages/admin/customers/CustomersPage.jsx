@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  Home,
-  User,
-  Plus,
-  RefreshCcw,
-  Trash2,
-  Edit3,
-} from "lucide-react";
+import { Home, User, Plus, RefreshCcw, Trash2, Edit3, Eye } from "lucide-react";
 
 import Breadcrumb from "@/components/Breadcrumb";
 import userAPI from "@/api/user.api";
 import CustomTooltip from "@/components/CustomTooltip";
 import CustomerModal from "./CustomerModal";
 import WarningModal from "@/components/WarningModal";
+import { useNavigate } from "react-router-dom";
 
 export default function CustomersPage() {
   const [users, setUsers] = useState([]);
@@ -24,7 +18,8 @@ export default function CustomersPage() {
   const [editing, setEditing] = useState(null);
 
   const [confirmDelete, setConfirmDelete] = useState(null);
-
+  const navigate = useNavigate();
+  
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -50,9 +45,7 @@ export default function CustomersPage() {
       const res = await userAPI.updateUserStatus(data.id, data.status);
 
       setUsers((prev) =>
-        prev.map((u) =>
-          u.id === data.id ? { ...u, status: data.status } : u
-        )
+        prev.map((u) => (u.id === data.id ? { ...u, status: data.status } : u)),
       );
 
       setOpenModal(false);
@@ -98,7 +91,11 @@ export default function CustomersPage() {
 
         <Breadcrumb
           items={[
-            { label: "Trang chủ", icon: <Home className="w-4 h-4" />, href: "/admin/dashboard" },
+            {
+              label: "Trang chủ",
+              icon: <Home className="w-4 h-4" />,
+              href: "/admin/dashboard",
+            },
             { label: "Khách hàng", icon: <User className="w-4 h-4" /> },
           ]}
         />
@@ -115,7 +112,10 @@ export default function CustomersPage() {
               : "border-gray-300 text-gray-700 hover:bg-gray-100"
           }`}
         >
-          <RefreshCcw size={16} className={refreshing ? "animate-spin text-blue-500" : ""} />
+          <RefreshCcw
+            size={16}
+            className={refreshing ? "animate-spin text-blue-500" : ""}
+          />
           {refreshing ? "Đang làm mới..." : "Làm mới"}
         </button>
       </div>
@@ -160,12 +160,23 @@ export default function CustomersPage() {
                           : "bg-red-100 text-red-600"
                       }`}
                     >
-                      {u.status}
+                      {u.status === "Active" ? "Đang hoạt động" : "Đã khóa"}
                     </span>
                   </td>
 
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-1.5">
+                      {/* Detail */}
+                      <CustomTooltip text="Xem chi tiết khách hàng">
+                        <button
+                          onClick={() =>
+                            navigate(`/admin/customers/${u.id}/detail`)
+                          }
+                          className="p-2 text-indigo-600 rounded-lg hover:bg-indigo-100"
+                        >
+                          <Eye size={18} />
+                        </button>
+                      </CustomTooltip>
                       {/* EDIT */}
                       <CustomTooltip text="Cập nhật khách hàng">
                         <button
