@@ -47,6 +47,7 @@ import AddCouponPage from "@/pages/admin/coupons/AddCouponPage.jsx";
 import CustomerDetail from "@/pages/admin/customers/CustomerDetail.jsx";
 import AdminReviewProductPage from "@/pages/admin/reviews/AdminReviewProductPage.jsx";
 import AdminReviewStorePage from "@/pages/admin/reviews/AdminReviewStorePage.jsx";
+import FavoritePage from "@/pages/client/FavoritePage.jsx";
 
 export const routes = [
   //Client
@@ -97,6 +98,14 @@ export const routes = [
   {
     path: "/order-success",
     element: <OrderSuccessPage />,
+  },
+  {
+    path: "/favorites",
+    element: (
+      <ProtectedRouteUser>
+        <FavoritePage />
+      </ProtectedRouteUser>
+    ),
   },
 
   {

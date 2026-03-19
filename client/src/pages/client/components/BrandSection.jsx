@@ -3,9 +3,26 @@ import { Link } from "react-router-dom";
 import { useCart } from "../../../context/CartProvider";
 import QuickViewPopup from "./QuickViewPopup";
 import defaultImage from "../../../assets/default.jpg";
+import { FaHeart } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import favoriteAPI from "../../../api/favorite.api";
 
 const BrandSection = ({ title, banner, products }) => {
 const [quickViewProduct, setQuickViewProduct] = useState(null);
+const { isAuthenticated } = useSelector((state) => state.userAuth);
+
+const handleFavorite = async (productId) => {
+  if (!isAuthenticated) {
+    alert("Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!");
+    return;
+  }
+  try {
+    await favoriteAPI.toggle(productId);
+    alert("Đã cập nhật danh sách yêu thích!");
+  } catch (error) {
+    console.error("Lỗi khi cập nhật yêu thích:", error);
+  }
+};
 
 return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
   {/* Tiêu đề */}
@@ -39,6 +56,15 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
               -{item.discount}% 
             </span>
           )}
+
+          {/* Nút yêu thích */}
+          <button
+            onClick={() => handleFavorite(item.id)}
+            className="absolute left-2 top-2 z-20 p-2 bg-white/80 rounded-full text-gray-400 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+            title="Thêm vào yêu thích"
+          >
+            <FaHeart size={14} />
+          </button>
 
           {/* Image */}
           <img

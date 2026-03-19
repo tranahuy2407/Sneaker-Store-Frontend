@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaShoppingCart, FaSearch, FaBars, FaTimes } from "react-icons/fa";
+import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaHeart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartProvider";
 import categoryAPI from "@/api/category.api"; 
@@ -101,6 +101,14 @@ const Navbar = ({ onHeightChange }) => {
                 </button>
               </form>
             )}
+          </div>
+
+          {/* Favorites */}
+          <div
+            className="relative cursor-pointer text-gray-700 hover:text-red-500 transition-colors"
+            onClick={() => navigate("/favorites")}
+          >
+            <FaHeart />
           </div>
 
           {/* Cart */}

@@ -346,7 +346,7 @@ export default function CustomerDetail() {
                           <button 
                             onClick={() => navigate(`/admin/orders/${order.id}`)}
                             className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline px-3 py-1 bg-blue-50 rounded-md transition-colors"
-                          >
+                         >
                             Chi tiết
                           </button>
                         </td>

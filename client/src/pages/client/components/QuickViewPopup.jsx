@@ -8,7 +8,7 @@ const sizes = [
   44.5, 45, 45.5, 46, 46.5,
 ];
 
-const QuickViewPopup = ({ product, onClose }) => {
+const QuickViewPopup = ({ product, onClose, onSuccess }) => {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -194,6 +194,7 @@ const QuickViewPopup = ({ product, onClose }) => {
             quantity
           );
 
+          onSuccess && onSuccess(product);
           onClose();
         }}
 
