@@ -156,6 +156,31 @@ export default function PromotionDetailPage() {
             )}
           </div>
 
+          {/* Products */}
+          <div className="p-4 bg-white rounded-lg shadow-md">
+            <h3 className="flex items-center gap-2 mb-3 text-lg font-semibold">
+              <Tag className="w-5 h-5 text-blue-600" />
+              Sản phẩm áp dụng
+            </h3>
+      
+            {promotion.products?.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {promotion.products.map((p) => (
+                  <div key={p.id} className="flex flex-col items-center p-2 border rounded-lg hover:shadow-sm transition-shadow">
+                    <img 
+                      src={p.images?.[0]?.url || defaultImage} 
+                      alt={p.name} 
+                      className="w-full h-24 object-contain mb-2"
+                    />
+                    <span className="text-xs font-bold text-center line-clamp-2">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">Chưa có sản phẩm nào được áp dụng.</p>
+            )}
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-3 mt-6">
             <Button

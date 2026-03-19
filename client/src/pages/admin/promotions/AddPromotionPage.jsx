@@ -7,6 +7,7 @@ import { Button } from "../../../components/Button";
 import { Input } from "../../../components/Input";
 import SuccessNotification from "../../../components/SuccessNotification";
 import CouponComboBox from "../../../components/CouponComboBox";
+import ProductComboBox from "../../../components/ProductComboBox";
 import promotionAPI from "../../../api/promotion.api";
 
 export default function AddPromotionPage() {
@@ -19,6 +20,7 @@ export default function AddPromotionPage() {
   const [endDate, setEndDate] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [selectedCoupons, setSelectedCoupons] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
@@ -49,6 +51,13 @@ export default function AddPromotionPage() {
         await promotionAPI.addCoupons(
           promotionId,
           selectedCoupons.map((c) => c.id),
+        );
+      }
+
+      if (promotionId && selectedProducts.length) {
+        await promotionAPI.addProducts(
+          promotionId,
+          selectedProducts.map((p) => p.id),
         );
       }
 
@@ -162,6 +171,11 @@ export default function AddPromotionPage() {
         <CouponComboBox
           selectedCoupons={selectedCoupons}
           setSelectedCoupons={setSelectedCoupons}
+        />
+
+        <ProductComboBox
+          selectedProducts={selectedProducts}
+          setSelectedProducts={setSelectedProducts}
         />
 
         <div className="fixed z-50 bottom-6 right-6">

@@ -11,6 +11,7 @@ import defaultImage from "@/assets/default.jpg";
 import { getImageUrl, getSrcSet } from "@/helpers/imageSrcSet";
 import FilterSidebar from "./components/FilterSidebar";
 import CustomTooltip from "@/components/CustomTooltip";
+import recentlyViewedAPI from "@/api/recentlyViewed.api";
 
 export default function SearchPage() {
   const [params] = useSearchParams();
@@ -184,6 +185,7 @@ export default function SearchPage() {
                 <div className="absolute inset-0 flex items-center justify-center gap-3 transition opacity-0 group-hover:opacity-100">
                   <a
                     href={`/san-pham/${p.slug}`}
+                    onClick={() => recentlyViewedAPI.add(p.id)}
                     className="px-4 py-2 text-sm font-semibold text-gray-800 bg-white rounded-lg shadow"
                   >
                     Tùy chọn

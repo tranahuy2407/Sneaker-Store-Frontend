@@ -10,6 +10,7 @@ import productAPI from "@/api/product.api";
 import defaultImage from "../../../assets/default.jpg";
 import CartPopup from "./CartPopup";
 import QuickViewPopup from "./QuickViewPopup";
+import recentlyViewedAPI from "../../../api/recentlyViewed.api";
 
 const ProductSlider = () => {
   const prevRef = useRef(null);
@@ -90,6 +91,7 @@ const ProductSlider = () => {
               <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 transition-all duration-300 translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0">
                 <Link
                   to={`/san-pham/${item.slug}`}
+                  onClick={() => recentlyViewedAPI.add(item.id)}
                   className="w-32 py-2 font-semibold text-center text-gray-800 bg-white border rounded-md shadow hover:bg-gray-100"
                 >
                   Tùy chọn

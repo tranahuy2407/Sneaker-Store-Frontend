@@ -6,6 +6,7 @@ import defaultImage from "../../../assets/default.jpg";
 import { FaHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import favoriteAPI from "../../../api/favorite.api";
+import recentlyViewedAPI from "../../../api/recentlyViewed.api";
 
 const BrandSection = ({ title, banner, products }) => {
 const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -67,11 +68,13 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
           </button>
 
           {/* Image */}
-          <img
-            src={item.images.length > 0 ? item.images.find(img => img.isDefault)?.url || item.images[0].url : defaultImage}
-            alt={item.name}
-            className="object-cover w-full h-auto transition duration-300 group-hover:brightness-75"
-          />
+          <div className="relative aspect-square overflow-hidden rounded-md bg-gray-50 flex items-center justify-center">
+            <img
+              src={item.images.length > 0 ? item.images.find(img => img.isDefault)?.url || item.images[0].url : defaultImage}
+              alt={item.name}
+              className="object-cover w-full h-full transition duration-300 group-hover:brightness-75 group-hover:scale-105"
+            />
+          </div>
 
           {/* Hover buttons */}
           <div
@@ -79,6 +82,7 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
           >
             <Link
               to={`/san-pham/${item.slug}`}
+              onClick={() => recentlyViewedAPI.add(item.id)}
               className="w-32 py-2 font-semibold text-center text-gray-800 bg-white border rounded-md shadow hover:bg-gray-100"
             >
               Tùy chọn
@@ -94,7 +98,7 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
         </div>
 
         {/* Product name */}
-        <p className="h-12 text-sm font-semibold">{item.name}</p>
+        <p className="h-10 mt-2 text-sm font-semibold line-clamp-2 overflow-hidden">{item.name}</p>
 
         {/* Price */}
         <div className="font-bold text-red-600">{item.discountPrice.toLocaleString()}₫</div>

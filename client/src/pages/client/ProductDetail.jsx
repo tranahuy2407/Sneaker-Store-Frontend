@@ -27,6 +27,8 @@ import favoriteAPI from "@/api/favorite.api";
 import SuccessNotification from "@/components/SuccessNotification";
 import WarningNotification from "@/components/WarningNotification";
 import SimilarProduct from "./components/SimilarProduct";
+import recentlyViewedAPI from "../../api/recentlyViewed.api";
+import RecentlyViewedSlider from "./components/RecentlyViewedSlider";
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -99,8 +101,18 @@ export default function ProductDetailPage() {
     if (product?.id) {
       fetchReviews(product.id);
       checkFavoriteStatus(product.id);
+      addToRecentlyViewed(product.id);
     }
   }, [product?.id]);
+
+  const addToRecentlyViewed = async (productId) => {
+    try {
+      console.log("Adding product to recently viewed:", productId);
+      await recentlyViewedAPI.add(productId);
+    } catch (error) {
+      console.error("Lỗi khi thêm vào sản phẩm đã xem:", error);
+    }
+  };
 
   const checkFavoriteStatus = async (productId) => {
     if (!isAuthenticated) return;
@@ -620,8 +632,11 @@ export default function ProductDetailPage() {
             <SimilarProduct currentProduct={product} />
           </div>
         </div>
-      </div>
 
+        <div className="mt-16 pt-10 border-t">
+          <RecentlyViewedSlider />
+        </div>
+      </div>
 
       <WarningModalSize
         open={showWarning}

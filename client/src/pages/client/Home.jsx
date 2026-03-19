@@ -60,7 +60,7 @@ export default function Home() {
 
       <BrandSection
         title="BIG SALE"
-        banner="https://i.ytimg.com/vi/CXSko9ySpyo/maxresdefault.jpg"
+        banner="https://intphcm.com/data/upload/poster-giay-dep-mat.jpg"
         products={brandProducts}
       />
 

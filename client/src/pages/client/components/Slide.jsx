@@ -1,39 +1,49 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay, Pagination } from "swiper/modules";
+import { useNavigate } from "react-router-dom";
+import promotionAPI from "../../../api/promotion.api";
 
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-const slides = [
-  {
-    id: 1,
-    img: "https://i.imgur.com/6IUbKfK.jpeg",
-    title: "Nike Air Jordan",
-    desc: "Phong cách đỉnh cao, giá cực sốc!",
-  },
-  {
-    id: 2,
-    img: "https://i.imgur.com/fy5ZsCn.jpeg",
-    title: "Adidas Yeezy",
-    desc: "Sự thoải mái đến từ công nghệ mới.",
-  },
-  {
-    id: 3,
-    img: "https://i.imgur.com/OkpF0fC.jpeg",
-    title: "Nike Air Force 1",
-    desc: "Thiết kế đơn giản nhưng sang trọng.",
-  },
-];
-
 const Slide = () => {
+  const [promotions, setPromotions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const prevRef = useRef(null);
   const nextRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const res = await promotionAPI.getActive();
+        if (res.data.status === "success") {
+          setPromotions(res.data.data);
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải khuyến mãi:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-10 h-[500px] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (promotions.length === 0) return null;
 
   return (
     <div className="container mx-auto py-10 relative">
-      {/* Tiêu đề slider */}
       <div className="text-center mb-6">
         <h2 className="text-2xl md:text-3xl font-bold inline-block pb-4 relative">
           Các chương trình khuyến mãi
@@ -41,7 +51,6 @@ const Slide = () => {
         </h2>
       </div>
 
-      {/* Slider */}
       <Swiper
         modules={[Navigation, Autoplay, Pagination]}
         navigation={{
@@ -53,39 +62,48 @@ const Slide = () => {
           swiper.params.navigation.nextEl = nextRef.current;
         }}
         pagination={{ clickable: true }}
-        autoplay={{ delay: 3000 }}
-        loop={true}
-        className="w-full h-[500px] relative"
+        autoplay={{ delay: 5000, disableOnInteraction: false }}
+        loop={promotions.length > 1}
+        className="w-full h-[500px] relative rounded-2xl overflow-hidden shadow-xl"
       >
-        {slides.map((item) => (
+        {promotions.map((item) => (
           <SwiperSlide key={item.id}>
-            <div className="relative w-full h-[500px]">
+            <div 
+              className="relative w-full h-[500px] cursor-pointer group"
+              onClick={() => navigate(`/khuyen-mai/${item.id}`)}
+            >
               <img
-                src={item.img}
-                className="w-full h-full object-cover"
-                alt={item.title}
+                src={item.image || "https://via.placeholder.com/1200x500?text=Promotion"}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                alt={item.name}
               />
 
-              <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 text-white">
-                <h2 className="text-2xl md:text-4xl font-bold drop-shadow">
-                  {item.title}
-                </h2>
-                <p className="mt-2 text-sm md:text-lg drop-shadow">{item.desc}</p>
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
+                <div className="ml-4 md:ml-16 text-white max-w-lg">
+                  <h2 className="text-3xl md:text-5xl font-extrabold drop-shadow-lg leading-tight">
+                    {item.name}
+                  </h2>
+                  <p className="mt-4 text-base md:text-xl drop-shadow-md line-clamp-3 opacity-90">
+                    {item.description || "Khám phá ngay những ưu đãi hấp dẫn dành riêng cho bạn!"}
+                  </p>
+                  <button className="mt-8 px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full transition-all transform hover:scale-105 shadow-lg uppercase tracking-wider">
+                    Xem chi tiết
+                  </button>
+                </div>
               </div>
             </div>
           </SwiperSlide>
         ))}
 
-        {/* Custom navigation buttons */}
         <div
           ref={prevRef}
-          className="absolute top-1/2 left-2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-blue-400 rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg z-10 hover:bg-blue-500 transition"
+          className="absolute top-1/2 left-4 transform -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg z-10 hover:bg-white/40 transition-all"
         >
           &#10094;
         </div>
         <div
           ref={nextRef}
-          className="absolute top-1/2 right-2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-blue-400 rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg z-10 hover:bg-blue-500 transition"
+          className="absolute top-1/2 right-4 transform -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg z-10 hover:bg-white/40 transition-all"
         >
           &#10095;
         </div>

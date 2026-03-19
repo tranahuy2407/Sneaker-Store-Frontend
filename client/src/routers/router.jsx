@@ -48,6 +48,7 @@ import CustomerDetail from "@/pages/admin/customers/CustomerDetail.jsx";
 import AdminReviewProductPage from "@/pages/admin/reviews/AdminReviewProductPage.jsx";
 import AdminReviewStorePage from "@/pages/admin/reviews/AdminReviewStorePage.jsx";
 import FavoritePage from "@/pages/client/FavoritePage.jsx";
+import PromotionDetail from "@/pages/client/PromotionDetail.jsx";
 
 export const routes = [
   //Client
@@ -106,6 +107,10 @@ export const routes = [
         <FavoritePage />
       </ProtectedRouteUser>
     ),
+  },
+  {
+    path: "/khuyen-mai/:id",
+    element: <PromotionDetail />,
   },
 
   {

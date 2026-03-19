@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useCart } from "../../../context/CartProvider";
 import imageDefault from "../../../assets/default.jpg";
 import WarningModalSize from "./WarningModalSize";
+import { useEffect } from "react";
+import recentlyViewedAPI from "../../../api/recentlyViewed.api";
 
 const sizes = [
   36.5, 37, 37.5, 38, 38.5, 39, 40, 40.5, 41, 41.5, 42, 42.5, 43, 43.5, 44,
@@ -16,6 +18,19 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
   const selectedProductSize = product.sizes?.find(
     (s) => Number(s.size) === Number(selectedSize)
   );
+
+  useEffect(() => {
+    if (product?.id) {
+      const addToHistory = async () => {
+        try {
+          await recentlyViewedAPI.add(product.id);
+        } catch (error) {
+          console.error("Lỗi khi thêm vào SP đã xem (QuickView):", error);
+        }
+      };
+      addToHistory();
+    }
+  }, [product?.id]);
 
   if (!product) return null;
   

@@ -1,11 +1,5 @@
 import { apiClient } from "../services/apiClient";
 
-/**
- * Promotion API
- * - create / update: multipart/form-data (image)
- * - relation: coupons / products
- */
-
 const toFormData = (data) => {
   if (data instanceof FormData) return data;
 
@@ -27,13 +21,16 @@ const toFormData = (data) => {
 };
 
 export const promotionAPI = {
-
   getAll(params) {
     return apiClient.get("/promotions", { params });
   },
 
   getById(id) {
     return apiClient.get(`/promotions/${id}`);
+  },
+
+  getActive() {
+    return apiClient.get("/promotions/client/active");
   },
 
   create(data) {
@@ -58,7 +55,21 @@ export const promotionAPI = {
       { couponIds }
     );
   },
+  addProducts(promotionId, productIds = []) {
+    return apiClient.post(
+      `/promotions/${promotionId}/products`,
+      { productIds }
+    );
+  },
 
+  removeProducts(promotionId, productIds = []) {
+    return apiClient.delete(
+      `/promotions/${promotionId}/products`,
+      {
+        data: { productIds },
+      }
+    );
+  },
 };
 
 export default promotionAPI;

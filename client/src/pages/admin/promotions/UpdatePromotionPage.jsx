@@ -15,6 +15,7 @@ import promotionAPI from "../../../api/promotion.api";
 import couponAPI from "../../../api/coupon.api";
 import defaultImage from "@/assets/default.jpg";
 import CouponComboBox from "../../../components/CouponComboBox";
+import ProductComboBox from "../../../components/ProductComboBox";
 
 export default function UpdatePromotionPage() {
   const { id } = useParams();
@@ -31,6 +32,7 @@ export default function UpdatePromotionPage() {
 
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [selectedCoupons, setSelectedCoupons] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [couponSearch, setCouponSearch] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -66,6 +68,7 @@ export default function UpdatePromotionPage() {
           });
 
             setSelectedCoupons(promo.coupons || []);
+            setSelectedProducts(promo.products || []);
         }
       } catch (err) {
         setError("Lỗi tải dữ liệu");
@@ -98,6 +101,11 @@ const handleSubmit = async (e) => {
     await promotionAPI.addCoupons(
       id,
       selectedCoupons.map((c) => c.id)
+    );
+
+    await promotionAPI.addProducts(
+      id,
+      selectedProducts.map((p) => p.id)
     );
 
     setSuccessMessage("Cập nhật thành công");
@@ -198,6 +206,11 @@ const handleSubmit = async (e) => {
           <CouponComboBox
             selectedCoupons={selectedCoupons}
             setSelectedCoupons={setSelectedCoupons}
+          />
+
+          <ProductComboBox
+            selectedProducts={selectedProducts}
+            setSelectedProducts={setSelectedProducts}
           />
 
           {/* ACTIVE */}
