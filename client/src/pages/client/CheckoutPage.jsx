@@ -11,6 +11,7 @@ import WarningNotification from "@/components/WarningNotification";
 import { refreshUserProfile } from "@/redux/slices/userAuthSlice";
 import CouponModal from "./components/CouponModal";
 import { Ticket } from "lucide-react";
+import { userAPI } from "@/api/user.api";
 
 const normalize = (str = "") =>
   str
@@ -79,7 +80,12 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     if (location.state?.buyNow && location.state?.items) {
-      setItems(location.state.items);
+      setItems(
+        location.state.items.map((i) => ({
+          ...i,
+          product_size_id: i.product_size_id || i.productSizeId || i.id,
+        })),
+      );
     } else {
       setItems(
         cart.map((i) => ({
@@ -239,6 +245,25 @@ const CheckoutPage = () => {
     ) {
       setWarningMsg("Vui lòng nhập đầy đủ thông tin giao hàng");
       return;
+    }
+
+    // Auto-save address if it's the user's first address
+    if (isAuthenticated && selectedAddressId === "other" && addressBook.length === 0) {
+      try {
+        await userAPI.addAddress({
+          receiver_name: shippingInfo.name,
+          receiver_phone: shippingInfo.phone,
+          address_line: shippingInfo.address,
+          ward: shippingInfo.ward,
+          district: shippingInfo.district,
+          city: shippingInfo.province,
+          note: shippingInfo.note,
+          is_default: true,
+        });
+        dispatch(refreshUserProfile());
+      } catch (err) {
+        console.error("Lỗi tự động lưu địa chỉ:", err);
+      }
     }
 
     try {

@@ -413,6 +413,7 @@ export default function ProductDetailPage() {
                             },
                             quantity,
                             size: selectedSize,
+                            product_size_id: selectedProductSize.id,
                           };
 
                           navigate("/checkout", {
