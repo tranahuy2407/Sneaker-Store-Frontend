@@ -267,7 +267,7 @@ const CheckoutPage = () => {
     }
 
     try {
-      await orderAPI.create({
+      const res = await orderAPI.create({
         items: items.map((i) => ({
           product_id: i.product.id,
           product_size_id: i.product_size_id,
@@ -280,8 +280,17 @@ const CheckoutPage = () => {
         coupon_code: coupon?.data?.coupon?.code || null,
       });
 
-      setSuccessMsg("Đặt hàng thành công !");
+      const { paymentUrl } = res.data;
+      
       await clearCart();
+      if (coupon) clearCoupon();
+
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      setSuccessMsg("Đặt hàng thành công !");
 
       setTimeout(() => {
         navigate("/order-success", {

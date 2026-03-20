@@ -228,7 +228,7 @@ export default function OrderTrackingPage() {
                   </div>
 
                   <div className="font-semibold text-red-600">
-                    {(item.price * item.quantity).toLocaleString()}đ
+                    {(item.product.discountPrice * item.quantity).toLocaleString()}đ
                   </div>
                 </div>
               ))}

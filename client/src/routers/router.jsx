@@ -51,6 +51,7 @@ import FavoritePage from "@/pages/client/FavoritePage.jsx";
 import PromotionDetail from "@/pages/client/PromotionDetail.jsx";
 import ForgotPassword from "@/pages/client/ForgotPassword.jsx";
 import ResetPassword from "@/pages/client/ResetPassword.jsx";
+import PaymentSuccess from "@/pages/client/PaymentSuccess.jsx";
 
 export const routes = [
   //Client
@@ -113,6 +114,10 @@ export const routes = [
   {
     path: "/khuyen-mai/:id",
     element: <PromotionDetail />,
+  },
+  {
+    path: "/payment-success",
+    element: <PaymentSuccess />,
   },
 
   {
