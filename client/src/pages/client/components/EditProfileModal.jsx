@@ -8,7 +8,6 @@ import {
 import WarningModal from "@/components/WarningModal";
 import SuccessNotification from "@/components/SuccessNotification";
 
-/* ================== HELPERS ================== */
 const normalize = (str = "") =>
   str
     .toLowerCase()
@@ -18,17 +17,15 @@ const normalize = (str = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
-// API trả { value, label }
 const getIdByName = (list, name) =>
   list.find((i) => normalize(i.label) === normalize(name))?.value || "";
 
 const getNameById = (list, value) =>
   list.find((i) => String(i.value) === String(value))?.label || "";
 
-/* ================== COMPONENT ================== */
 export function EditProfileModal({ user, onClose, onSuccess }) {
   const [form, setForm] = useState({
-    name: user.username || "",
+    name: user.name || user.username || "",
     newPassword: "",
     confirmPassword: "",
     addresses: user.addresses || [],
@@ -46,12 +43,10 @@ export function EditProfileModal({ user, onClose, onSuccess }) {
 
   const selectedAddress = form.addresses[selectedIndex];
 
-  /* ========== LOAD PROVINCES ========== */
   useEffect(() => {
     fetchProvinces().then(setProvinces);
   }, []);
 
-  /* ========== MAP NAME → VALUE KHI INIT ========== */
   useEffect(() => {
     if (!provinces.length || !form.addresses.length || initialized) return;
 
@@ -148,13 +143,22 @@ export function EditProfileModal({ user, onClose, onSuccess }) {
       })
     );
 
-    await userAPI.updateProfile({
+    const payload = {
       name: form.name,
       addresses,
-    });
+    };
 
-    setShowSuccess(true);
-    onSuccess?.();
+    if (form.newPassword) {
+      payload.password = form.newPassword;
+    }
+
+    try {
+      await userAPI.updateProfile(payload);
+      setShowSuccess(true);
+      onSuccess?.();
+    } catch (err) {
+      alert(err.response?.data?.message || "Cập nhật hồ sơ thất bại");
+    }
   };
 
   const handleSubmit = async () => {
@@ -174,9 +178,6 @@ export function EditProfileModal({ user, onClose, onSuccess }) {
     await submitProfile();
   };
 
-  if (!selectedAddress) return null;
-
-  /* ================== UI ================== */
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-full max-w-4xl p-6 bg-white rounded-lg">
@@ -221,120 +222,130 @@ export function EditProfileModal({ user, onClose, onSuccess }) {
         <div className="grid grid-cols-3 gap-4">
           {/* LIST */}
           <div className="space-y-2">
-            {form.addresses.map((addr, i) => (
-              <div
-                key={addr.id}
-                onClick={() => setSelectedIndex(i)}
-                className={`p-3 border rounded cursor-pointer ${
-                  selectedIndex === i
-                    ? "border-black bg-gray-100"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                <p className="font-medium">{addr.receiver_name}</p>
-                <p className="text-sm text-gray-600">
-                  {addr.address_line}
-                </p>
-                {addr.is_default && (
-                  <span className="text-xs text-green-600">
-                    Mặc định
-                  </span>
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDefaultAddress(i);
-                  }}
-                  className="block mt-2 text-xs text-blue-600"
+            {form.addresses.length > 0 ? (
+              form.addresses.map((addr, i) => (
+                <div
+                  key={addr.id || i}
+                  onClick={() => setSelectedIndex(i)}
+                  className={`p-3 border rounded cursor-pointer ${
+                    selectedIndex === i
+                      ? "border-black bg-gray-100"
+                      : "hover:bg-gray-50"
+                  }`}
                 >
-                  Đặt mặc định
-                </button>
-              </div>
-            ))}
+                  <p className="font-medium">{addr.receiver_name}</p>
+                  <p className="text-sm text-gray-600">
+                    {addr.address_line}
+                  </p>
+                  {addr.is_default && (
+                    <span className="text-xs text-green-600">
+                      Mặc định
+                    </span>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDefaultAddress(i);
+                    }}
+                    className="block mt-2 text-xs text-blue-600"
+                  >
+                    Đặt mặc định
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm italic text-gray-500">Chưa có địa chỉ. Hãy thêm trong "Sổ địa chỉ".</p>
+            )}
           </div>
 
           {/* FORM */}
-          <div className="col-span-2 p-4 border rounded bg-gray-50">
-            <input
-              className="w-full p-2 mb-2 border rounded"
-              placeholder="Tên người nhận"
-              value={selectedAddress.receiver_name || ""}
-              onChange={(e) =>
-                updateSelectedAddress("receiver_name", e.target.value)
-              }
-            />
+          {selectedAddress ? (
+            <div className="col-span-2 p-4 border rounded bg-gray-50">
+              <input
+                className="w-full p-2 mb-2 border rounded"
+                placeholder="Tên người nhận"
+                value={selectedAddress.receiver_name || ""}
+                onChange={(e) =>
+                  updateSelectedAddress("receiver_name", e.target.value)
+                }
+              />
 
-            <input
-              className="w-full p-2 mb-2 border rounded"
-              placeholder="Số điện thoại"
-              value={selectedAddress.receiver_phone || ""}
-              onChange={(e) =>
-                updateSelectedAddress("receiver_phone", e.target.value)
-              }
-            />
+              <input
+                className="w-full p-2 mb-2 border rounded"
+                placeholder="Số điện thoại"
+                value={selectedAddress.receiver_phone || ""}
+                onChange={(e) =>
+                  updateSelectedAddress("receiver_phone", e.target.value)
+                }
+              />
 
-            <input
-              className="w-full p-2 mb-2 border rounded"
-              placeholder="Địa chỉ chi tiết"
-              value={selectedAddress.address_line || ""}
-              onChange={(e) =>
-                updateSelectedAddress("address_line", e.target.value)
-              }
-            />
+              <input
+                className="w-full p-2 mb-2 border rounded"
+                placeholder="Địa chỉ chi tiết"
+                value={selectedAddress.address_line || ""}
+                onChange={(e) =>
+                  updateSelectedAddress("address_line", e.target.value)
+                }
+              />
 
-            {/* PROVINCE */}
-            <select
-              className="w-full p-2 mb-2 border rounded"
-              value={selectedAddress.city || ""}
-              onChange={(e) => {
-                updateSelectedAddress("city", e.target.value);
-                updateSelectedAddress("district", "");
-                updateSelectedAddress("ward", "");
-              }}
-            >
-              <option value="">-- Tỉnh / Thành --</option>
-              {provinces.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
+              {/* PROVINCE */}
+              <select
+                className="w-full p-2 mb-2 border rounded"
+                value={selectedAddress.city || ""}
+                onChange={(e) => {
+                  updateSelectedAddress("city", e.target.value);
+                  updateSelectedAddress("district", "");
+                  updateSelectedAddress("ward", "");
+                }}
+              >
+                <option value="">-- Tỉnh / Thành --</option>
+                {provinces.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
 
-            {/* DISTRICT */}
-            <select
-              className="w-full p-2 mb-2 border rounded"
-              value={selectedAddress.district || ""}
-              disabled={!districts.length}
-              onChange={(e) => {
-                updateSelectedAddress("district", e.target.value);
-                updateSelectedAddress("ward", "");
-              }}
-            >
-              <option value="">-- Quận / Huyện --</option>
-              {districts.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+              {/* DISTRICT */}
+              <select
+                className="w-full p-2 mb-2 border rounded"
+                value={selectedAddress.district || ""}
+                disabled={!districts.length}
+                onChange={(e) => {
+                  updateSelectedAddress("district", e.target.value);
+                  updateSelectedAddress("ward", "");
+                }}
+              >
+                <option value="">-- Quận / Huyện --</option>
+                {districts.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
 
-            {/* WARD */}
-            <select
-              className="w-full p-2 border rounded"
-              value={selectedAddress.ward || ""}
-              disabled={!wards.length}
-              onChange={(e) =>
-                updateSelectedAddress("ward", e.target.value)
-              }
-            >
-              <option value="">-- Phường / Xã --</option>
-              {wards.map((w) => (
-                <option key={w.value} value={w.value}>
-                  {w.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* WARD */}
+              <select
+                className="w-full p-2 border rounded"
+                value={selectedAddress.ward || ""}
+                disabled={!wards.length}
+                onChange={(e) =>
+                  updateSelectedAddress("ward", e.target.value)
+                }
+              >
+                <option value="">-- Phường / Xã --</option>
+                {wards.map((w) => (
+                  <option key={w.value} value={w.value}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="col-span-2 p-8 text-center bg-gray-100 rounded">
+              Vui lòng thêm địa chỉ mới để tiếp tục.
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 mt-6">

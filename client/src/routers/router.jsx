@@ -49,6 +49,8 @@ import AdminReviewProductPage from "@/pages/admin/reviews/AdminReviewProductPage
 import AdminReviewStorePage from "@/pages/admin/reviews/AdminReviewStorePage.jsx";
 import FavoritePage from "@/pages/client/FavoritePage.jsx";
 import PromotionDetail from "@/pages/client/PromotionDetail.jsx";
+import ForgotPassword from "@/pages/client/ForgotPassword.jsx";
+import ResetPassword from "@/pages/client/ResetPassword.jsx";
 
 export const routes = [
   //Client
@@ -116,6 +118,18 @@ export const routes = [
   {
     path: "/track-order",
     element: <TrackOrderPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password/:token",
+    element: <ResetPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
   },
 
   // Admin Dashboard Routes

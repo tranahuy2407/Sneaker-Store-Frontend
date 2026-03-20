@@ -31,6 +31,21 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+/* ================= GOOGLE LOGIN ================= */
+export const googleLogin = createAsyncThunk(
+  "auth/googleLogin",
+  async (idToken, { rejectWithValue }) => {
+    try {
+      const res = await userAPI.googleLogin(idToken);
+      return { user: res.data.data || res.data.user };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Xác thực Google thất bại !"
+      );
+    }
+  }
+);
+
 /* ================= LOGOUT ================= */
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
@@ -115,6 +130,22 @@ const userAuthSlice = createSlice({
         state.profileLoaded = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      /* GOOGLE LOGIN */
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.checkingAuth = false;
+        state.profileLoaded = true;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser, clearUserError } from "../../redux/slices/userAuthSlice";
+import { registerUser, clearUserError, googleLogin } from "../../redux/slices/userAuthSlice";
 import { useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible, AiOutlineGoogle } from "react-icons/ai";
 import logo from "../../assets/sneaker-logo.jfif";
+import SuccessNotification from "@/components/SuccessNotification";
+import WarningNotification from "@/components/WarningNotification";
 
 export default function Register() {
+  const googleButtonRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -15,32 +18,113 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMsg, setWarningMsg] = useState("");
 
-  const { loading, error } = useSelector((state) => state.userAuth);
+  const { loading, isAuthenticated, error } = useSelector((state) => state.userAuth);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  dispatch(clearUserError());
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
 
-  if (!username || !email || !password || !confirmPassword) {
-    return alert("Vui lòng nhập đầy đủ thông tin");
-  }
+    script.onload = () => {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (window.google && clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleResponse,
+          itp_support: true,
+          use_fedcm_for_prompt: true,
+        });
 
-  if (password !== confirmPassword) {
-    return alert("Mật khẩu nhập lại không khớp!");
-  }
+        // Render the official Google button
+        if (googleButtonRef.current) {
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: "outline",
+            size: "large",
+            width: 320,
+            text: "signup_with",
+            shape: "pill",
+          });
+        }
+      }
+    };
 
-  try {
-    await dispatch(registerUser({ username, email, password })).unwrap();
-    navigate("/login");
-  } catch (err) {
-    console.error("Đăng ký thất bại:", err);
-  }
-};
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      const { credential } = response; // This is the idToken
+      await dispatch(googleLogin(credential)).unwrap();
+    } catch (err) {
+      setWarningMsg(typeof err === 'string' ? err : "Đăng ký Google thất bại");
+      setShowWarning(true);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(clearUserError());
+
+    if (!username || !email || !password || !confirmPassword) {
+      setWarningMsg("Vui lòng nhập đầy đủ thông tin");
+      setShowWarning(true);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setWarningMsg("Định dạng email không hợp lệ");
+      setShowWarning(true);
+      return;
+    }
+
+    if (password.length < 6) {
+      setWarningMsg("Mật khẩu phải có ít nhất 6 ký tự");
+      setShowWarning(true);
+      return;
+    }
+
+    if (password.trim() !== confirmPassword.trim()) {
+      setWarningMsg("Mật khẩu nhập lại không khớp!");
+      setShowWarning(true);
+      return;
+    }
+
+    try {
+      await dispatch(registerUser({ username, email, password })).unwrap();
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (err) {
+      console.error("Đăng ký thất bại:", err);
+    }
+  };
 
 
   const handleGoogleRegister = () => {
-    window.location.href = "http://localhost:8080/api/v1/user/auth/google";
+    if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+      window.google.accounts.id.prompt(); 
+    } else {
+      setWarningMsg("Chưa cấu hình Google Client ID (VITE_GOOGLE_CLIENT_ID) trong .env");
+      setShowWarning(true);
+    }
   };
 
   return (
@@ -81,6 +165,7 @@ export default function Register() {
               onChange={(e) => setUserName(e.target.value)}
               disabled={loading}
               placeholder="Nguyễn Văn A"
+              autocomplete="username"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
           </div>
@@ -96,6 +181,7 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
               placeholder="example@gmail.com"
+              autocomplete="email"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
           </div>
@@ -111,6 +197,7 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               placeholder="••••••••"
+              autocomplete="new-password"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
 
@@ -133,6 +220,7 @@ export default function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
               placeholder="••••••••"
+              autocomplete="new-password"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
 
@@ -153,15 +241,17 @@ export default function Register() {
             {loading ? "Đang tạo..." : "Đăng ký"}
           </button>
 
-          {/* Google signup */}
-          <button
-            type="button"
-            onClick={handleGoogleRegister}
-            className="flex items-center justify-center w-full py-3 mt-3 text-base font-medium bg-white border shadow-sm rounded-xl hover:bg-gray-100 active:scale-95"
-          >
-            <AiOutlineGoogle className="mr-2 text-xl text-red-500" />
-            Đăng nhập với Google
-          </button>
+          {/* Separator */}
+          <div className="relative flex items-center py-5">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink mx-4 text-gray-400">Hoặc</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          {/* Google signup container */}
+          <div className="flex justify-center w-full">
+            <div ref={googleButtonRef}></div>
+          </div>
         </form>
 
         {/* Login link */}
@@ -179,6 +269,20 @@ export default function Register() {
           © {new Date().getFullYear()} SneakerStore — All rights reserved
         </p>
       </div>
+
+      {showSuccess && (
+        <SuccessNotification 
+          message="Đăng ký tài khoản thành công! Đang chuyển hướng..." 
+          onClose={() => setShowSuccess(false)} 
+        />
+      )}
+
+      {showWarning && (
+        <WarningNotification 
+          message={warningMsg} 
+          onClose={() => setShowWarning(false)} 
+        />
+      )}
     </div>
   );
 }

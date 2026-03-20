@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, clearUserError } from "../../redux/slices/userAuthSlice";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible, AiOutlineGoogle } from "react-icons/ai";
 import logo from "../../assets/sneaker-logo.jfif";
+import WarningNotification from "@/components/WarningNotification";
+import { loginUser, clearUserError, googleLogin } from "../../redux/slices/userAuthSlice";
 
 export default function UserLogin() {
+  const googleButtonRef = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMsg, setWarningMsg] = useState("");
   const location = useLocation();
   const from = location.state?.from || "/";
 
@@ -18,6 +22,53 @@ export default function UserLogin() {
   const { isAuthenticated, loading, error } = useSelector(
     (state) => state.userAuth
   );
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (window.google && clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleResponse,
+          itp_support: true,
+          use_fedcm_for_prompt: true,
+        });
+
+        if (googleButtonRef.current) {
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: "outline",
+            size: "large",
+            width: 320, 
+            text: "signin_with",
+            shape: "circle",
+            logo_alignment: "left",
+          });
+        }
+      }
+    };
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      const { credential } = response; 
+      await dispatch(googleLogin(credential)).unwrap();
+    } catch (err) {
+      setWarningMsg(typeof err === 'string' ? err : "Đăng nhập Google thất bại");
+      setShowWarning(true);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,7 +89,12 @@ export default function UserLogin() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/api/v1/user/auth/google";
+    if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+      window.google.accounts.id.prompt(); 
+    } else {
+      setWarningMsg("Chưa cấu hình Google Client ID (VITE_GOOGLE_CLIENT_ID) trong .env");
+      setShowWarning(true);
+    }
   };
 
   return (
@@ -73,11 +129,12 @@ export default function UserLogin() {
               Email
             </label>
             <input
-              value={email}
+               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
               type="email"
               placeholder="example@gmail.com"
+              autocomplete="email"
               className="w-full px-5 py-3 transition border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100"
             />
           </div>
@@ -93,6 +150,7 @@ export default function UserLogin() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               placeholder="••••••••"
+              autocomplete="current-password"
               className="w-full px-5 py-3 transition border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100"
             />
 
@@ -125,15 +183,17 @@ export default function UserLogin() {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
-          {/* Google Login */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="flex items-center justify-center w-full py-3 mt-3 text-base font-medium bg-white border shadow-sm rounded-xl hover:bg-gray-100 active:scale-95"
-          >
-            <AiOutlineGoogle className="mr-2 text-xl text-red-500" />
-            Đăng nhập với Google
-          </button>
+          {/* Separator */}
+          <div className="relative flex items-center py-5">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink mx-4 text-gray-400">Hoặc</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          {/* Google Login container */}
+          <div className="flex justify-center w-full">
+            <div ref={googleButtonRef}></div>
+          </div>
         </form>
 
         {/* Register Link */}
@@ -152,6 +212,13 @@ export default function UserLogin() {
           © {new Date().getFullYear()} SneakerStore — All rights reserved
         </p>
       </div>
+
+      {showWarning && (
+        <WarningNotification 
+          message={warningMsg} 
+          onClose={() => setShowWarning(false)} 
+        />
+      )}
     </div>
   );
 }
