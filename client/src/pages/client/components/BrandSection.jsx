@@ -7,8 +7,9 @@ import { FaHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import favoriteAPI from "../../../api/favorite.api";
 import recentlyViewedAPI from "../../../api/recentlyViewed.api";
+import { getImageUrl, getSrcSet } from "../../../helpers/imageSrcSet";
 
-const BrandSection = ({ title, banner, products }) => {
+const BrandSection = ({ title, banner, products, slug }) => {
 const [quickViewProduct, setQuickViewProduct] = useState(null);
 const { isAuthenticated } = useSelector((state) => state.userAuth);
 
@@ -28,19 +29,25 @@ const handleFavorite = async (productId) => {
 return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
   {/* Tiêu đề */}
   <div className="mb-10 text-center">
-    <h2 className="relative inline-block pb-4 text-2xl font-bold md:text-3xl">
-      {title}
-      <span className="absolute bottom-0 w-16 h-1 -translate-x-1/2 bg-blue-400 rounded left-1/2"></span>
-    </h2>
+    <Link to={slug ? `/thuong-hieu/${slug}` : "#"} className={slug ? "hover:opacity-80 transition-opacity" : "pointer-events-none"}>
+      <h2 className="relative inline-block pb-4 text-2xl font-bold md:text-3xl uppercase tracking-wider">
+        {title}
+        <span className="absolute bottom-0 w-16 h-1 -translate-x-1/2 bg-blue-400 rounded left-1/2"></span>
+      </h2>
+    </Link>
   </div>
 
   {/* Banner */}
-  <div className="w-full mb-10">
-    <img
-      src={banner}
-      alt={title}
-      className="w-full rounded-md shadow-md"
-    />
+  <div className="w-full mb-10 overflow-hidden rounded-xl shadow-lg group">
+    <Link to={slug ? `/thuong-hieu/${slug}` : "#"}>
+      <img
+        src={getImageUrl(banner)}
+        srcSet={getSrcSet(banner)}
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        alt={title}
+        className="w-full transition-transform duration-700 group-hover:scale-105"
+      />
+    </Link>
   </div>
 
   {/* Danh sách sản phẩm */}
@@ -69,11 +76,18 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
 
           {/* Image */}
           <div className="relative aspect-square overflow-hidden rounded-md bg-gray-50 flex items-center justify-center">
-            <img
-              src={item.images.length > 0 ? item.images.find(img => img.isDefault)?.url || item.images[0].url : defaultImage}
-              alt={item.name}
-              className="object-cover w-full h-full transition duration-300 group-hover:brightness-75 group-hover:scale-105"
-            />
+            {(() => {
+              const imgSrc = item.images?.length > 0 ? item.images.find(img => img.isDefault)?.url || item.images[0]?.url : defaultImage;
+              return (
+                <img
+                  src={getImageUrl(imgSrc)}
+                  srcSet={getSrcSet(imgSrc)}
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                  alt={item.name}
+                  className="object-cover w-full h-full transition duration-300 group-hover:brightness-75 group-hover:scale-105"
+                />
+              );
+            })()}
           </div>
 
           {/* Hover buttons */}

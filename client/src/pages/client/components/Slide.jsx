@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay, Pagination } from "swiper/modules";
 import { useNavigate } from "react-router-dom";
 import promotionAPI from "../../../api/promotion.api";
+import { getImageUrl, getSrcSet } from "../../../helpers/imageSrcSet";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -73,7 +74,9 @@ const Slide = () => {
               onClick={() => navigate(`/khuyen-mai/${item.id}`)}
             >
               <img
-                src={item.image || "https://via.placeholder.com/1200x500?text=Promotion"}
+                src={getImageUrl(item.image)}
+                srcSet={getSrcSet(item.image)}
+                sizes="(max-width: 1280px) 100vw, 1280px"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 alt={item.name}
               />

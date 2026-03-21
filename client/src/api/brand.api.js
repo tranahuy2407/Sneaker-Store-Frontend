@@ -40,7 +40,8 @@ export const brandAPI = {
     });
   },
   delete: (id) => apiClient.delete(`/brands/${id}`),
-  getBrandProducts: (id) => apiClient.get(`/brands/${id}/products`),
+  getBrandProducts: (slug, params = {}) =>
+    apiClient.get(`/brands/${slug}/products`, { params }),
 };
 
 export default brandAPI;

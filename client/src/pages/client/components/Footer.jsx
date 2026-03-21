@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
 import { FaFacebookF, FaInstagram, FaBehance, FaTwitter } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import brandAPI from "../../../api/brand.api"; 
 import defaultImage from "../../../assets/default.jpg"
+import { useEffect, useState } from "react";
 const Footer = () => {
   const [brands, setBrands] = useState([]);
 
@@ -23,13 +24,13 @@ const Footer = () => {
     <footer className="pt-10 mt-20">
       <div className="flex flex-wrap justify-center w-full gap-16 pb-10">
         {brands.map((brand) => (
-          <img
-            key={brand.id}
-            src={brand.image?.trim() ? brand.image : defaultImage}
-            alt={brand.name}
-            className="object-contain h-12"
-          />
-
+          <Link key={brand.id} to={`/thuong-hieu/${brand.slug}`}>
+            <img
+              src={brand.image?.trim() ? brand.image : defaultImage}
+              alt={brand.name}
+              className="object-contain h-12 transition-transform hover:scale-110"
+            />
+          </Link>
         ))}
       </div>
 

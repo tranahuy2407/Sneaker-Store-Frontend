@@ -30,6 +30,7 @@ import Register from "@/pages/client/Register.jsx";
 import CartPage from "@/pages/client/CartPage.jsx";
 import ProductDetail from "@/pages/client/ProductDetail.jsx";
 import CategoryPage from "@/pages/client/CategoryPage.jsx";
+import BrandPage from "@/pages/client/BrandPage.jsx";
 import SearchPage from "@/pages/client/SearchPage.jsx";
 import CheckoutPage from "@/pages/client/CheckoutPage.jsx";
 import ShippingCostPage from "@/pages/admin/shipping-costs/ShippingCostPage.jsx";
@@ -51,7 +52,13 @@ import FavoritePage from "@/pages/client/FavoritePage.jsx";
 import PromotionDetail from "@/pages/client/PromotionDetail.jsx";
 import ForgotPassword from "@/pages/client/ForgotPassword.jsx";
 import ResetPassword from "@/pages/client/ResetPassword.jsx";
-import PaymentSuccess from "@/pages/client/PaymentSuccess.jsx";
+import HomeSectionsPage from "@/pages/admin/home-sections/HomeSectionsPage.jsx";
+import AddHomeSectionPage from "@/pages/admin/home-sections/AddHomeSectionPage.jsx";
+import NewsPage from "@/pages/admin/news/NewsPage.jsx";
+import AddNewsPage from "@/pages/admin/news/AddNewsPage.jsx";
+import ContactsPage from "@/pages/admin/contacts/ContactsPage.jsx";
+import AddContactPage from "@/pages/admin/contacts/AddContactPage.jsx";
+import StoreInfoPage from "@/pages/admin/store/StoreInfoPage.jsx";
 
 export const routes = [
   //Client
@@ -92,6 +99,10 @@ export const routes = [
     element: <CategoryPage />,
   },
   {
+    path: "/thuong-hieu/:slug",
+    element: <BrandPage />,
+  },
+  {
     path: "/search",
     element: <SearchPage />,
   },
@@ -117,7 +128,7 @@ export const routes = [
   },
   {
     path: "/payment-success",
-    element: <PaymentSuccess />,
+    element: <OrderSuccessPage />,
   },
 
   {
@@ -408,6 +419,96 @@ export const routes = [
 
 
   // ============ THUỘC TÍNH SẢN PHẨM ============
+  {
+    path: "/admin/home-sections",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <HomeSectionsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/home-sections/add",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddHomeSectionPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/home-sections/:id/edit",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddHomeSectionPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/news",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <NewsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/news/add",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddNewsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/news/:id/edit",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddNewsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/contacts",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <ContactsPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/contacts/add",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <AddContactPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/store-info",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <StoreInfoPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+  },
 
   // Categories Routes
   {

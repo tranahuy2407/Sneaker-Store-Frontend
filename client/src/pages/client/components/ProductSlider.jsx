@@ -11,6 +11,7 @@ import defaultImage from "../../../assets/default.jpg";
 import CartPopup from "./CartPopup";
 import QuickViewPopup from "./QuickViewPopup";
 import recentlyViewedAPI from "../../../api/recentlyViewed.api";
+import { getImageUrl, getSrcSet } from "../../../helpers/imageSrcSet";
 
 const ProductSlider = () => {
   const prevRef = useRef(null);
@@ -82,7 +83,9 @@ const ProductSlider = () => {
               )}
 
               <img
-                src={item.img}
+                src={getImageUrl(item.img)}
+                srcSet={getSrcSet(item.img)}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                 alt={item.name}
                 className="object-cover w-full h-64 transition duration-300 group-hover:brightness-75"
               />

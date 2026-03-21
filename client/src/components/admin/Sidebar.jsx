@@ -15,13 +15,18 @@ import {
   ChevronRight,
   Tags,
   Star,
+  Award,
+  Layout,
+  Newspaper,
+  MessageSquare,
+  Info,
 } from "lucide-react";
 import logo from "../../assets/sneaker-logo.jfif";
 
 const menu = [
   {
     label: "Dashboard",
-    icon: <Home className="w-5 h-5" />,
+    icon: <Home className="w-5 h-5 text-indigo-500" />,
     href: "/admin/dashboard",
   },
   {
@@ -30,7 +35,7 @@ const menu = [
   },
   {
     label: "Sản Phẩm",
-    icon: <Package className="w-5 h-5" />,
+    icon: <Package className="w-5 h-5 text-emerald-500" />,
     href: "#",
     hasSubmenu: true,
     submenu: [
@@ -46,7 +51,7 @@ const menu = [
   },
   {
     label: "Quản Lý Kho",
-    icon: <Layers className="w-5 h-5" />,
+    icon: <Layers className="w-5 h-5 text-cyan-500" />,
     href: "#",
     hasSubmenu: true,
     submenu: [
@@ -62,7 +67,7 @@ const menu = [
   },
 {
     label: "Quản Lý Giảm giá",
-    icon: <Tags className="w-5 h-5" />,
+    icon: <Tags className="w-5 h-5 text-rose-500" />,
     href: "#",
     hasSubmenu: true,
     submenu: [
@@ -78,7 +83,7 @@ const menu = [
   },
   {
     label: "Quản Lý Đánh Giá",
-    icon: <Star className="w-5 h-5" />,
+    icon: <Star className="w-5 h-5 text-amber-500" />,
     href: "#",
     hasSubmenu: true,
     submenu: [
@@ -98,27 +103,27 @@ const menu = [
   },
   {
     label: "Đơn Hàng",
-    icon: <ShoppingCart className="w-5 h-5" />,
+    icon: <ShoppingCart className="w-5 h-5 text-blue-500" />,
     href: "/admin/orders",
   },
   {
     label: "Hóa Đơn",
-    icon: <Receipt className="w-5 h-5" />,
+    icon: <Receipt className="w-5 h-5 text-violet-500" />,
     href: "/admin/invoices",
   },
   {
     label: "Thanh Toán",
-    icon: <CreditCard className="w-5 h-5" />,
+    icon: <CreditCard className="w-5 h-5 text-green-500" />,
     href: "/admin/payment-methods",
   },
   {
     label: "Phí Vận Chuyển",
-    icon: <Receipt className="w-5 h-5" />,
+    icon: <Receipt className="w-5 h-5 text-sky-500" />,
     href: "/admin/shipping-costs",
   },
   {
     label: "Khách Hàng",
-    icon: <Users className="w-5 h-5" />,
+    icon: <Users className="w-5 h-5 text-purple-500" />,
     href: "/admin/customers",
   },
   {
@@ -127,7 +132,7 @@ const menu = [
   },
   {
     label: "Danh Mục",
-    icon: <List className="w-5 h-5" />,
+    icon: <List className="w-5 h-5 text-teal-500" />,
     href: "#",
     hasSubmenu: true,
     submenu: [
@@ -143,7 +148,7 @@ const menu = [
   },
   {
     label: "Thương Hiệu",
-    icon: <Tag className="w-5 h-5" />,
+    icon: <Tag className="w-5 h-5 text-orange-500" />,
     href: "#",
     hasSubmenu: true,
     submenu: [
@@ -156,6 +161,35 @@ const menu = [
         href: "/admin/brands/add",
       },
     ],
+  },
+  {
+    label: "QUẢN LÝ WEBSITE",
+    isGroup: true,
+  },
+  {
+    label: "Giao diện Trang chủ",
+    icon: <Layout className="w-5 h-5 text-blue-500" />,
+    href: "/admin/home-sections",
+  },
+  {
+    label: "Tin tức",
+    icon: <Newspaper className="w-5 h-5 text-pink-500" />,
+    href: "#",
+    hasSubmenu: true,
+    submenu: [
+      { label: "Tất cả bài viết", href: "/admin/news" },
+      { label: "Thêm bài viết mới", href: "/admin/news/add" },
+    ],
+  },
+  {
+    label: "Liên hệ",
+    icon: <MessageSquare className="w-5 h-5 text-teal-500" />,
+    href: "/admin/contacts",
+  },
+  {
+    label: "Thông tin cửa hàng",
+    icon: <Info className="w-5 h-5 text-orange-500" />,
+    href: "/admin/store-info",
   },
 ];
 
@@ -211,7 +245,7 @@ export default function Sidebar({ open, setOpen }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 w-64 h-full bg-white border-r border-gray-200 transition-transform duration-300 transform md:static md:flex-shrink-0 ${
+        className={`fixed top-0 left-0 z-50 w-72 h-full bg-white border-r border-gray-200 transition-transform duration-300 transform md:static md:flex-shrink-0 ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >

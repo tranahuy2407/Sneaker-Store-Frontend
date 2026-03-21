@@ -12,15 +12,19 @@ import { refreshUserProfile } from "@/redux/slices/userAuthSlice";
 import CouponModal from "./components/CouponModal";
 import { Ticket } from "lucide-react";
 import { userAPI } from "@/api/user.api";
+import { shippingCostAPI } from "@/api/shippingCost.api";
 
-const normalize = (str = "") =>
-  str
+const normalize = (str = "") => {
+  if (!str) return "";
+  return str
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/^(tinh|thanh pho|quan|huyen|phuong|xa)\s+/i, "")
     .replace(/\s+/g, " ")
+    .replace(/^(tinh|thanh pho|tp|tp\.|quan|huyen|phuong|xa)\s+/i, "")
+    .replace(/\s+(tinh|thanh pho|tp|tp\.|quan|huyen|phuong|xa)$/i, "")
     .trim();
+};
 
 const getIdByName = (list, name) =>
   list.find((i) => normalize(i.label) === normalize(name))?.value || "";
@@ -49,6 +53,9 @@ const CheckoutPage = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [wardId, setWardId] = useState("");
   const { profileLoaded } = useSelector((s) => s.userAuth);
+  const [shippingCosts, setShippingCosts] = useState([]);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addressBook = useMemo(() => {
     if (!isAuthenticated || !profileLoaded) return [];
@@ -199,7 +206,36 @@ const CheckoutPage = () => {
     paymentAPI.getAll({ is_active: true }).then((res) => {
       setPaymentMethods(res.data?.data || []);
     });
+
+    shippingCostAPI.getAll({ limit: 100 }).then((res) => {
+      setShippingCosts(res.data?.data || []);
+    });
   }, []);
+
+  useEffect(() => {
+    if (!shippingInfo.province || !shippingCosts.length) {
+      setShippingFee(0);
+      return;
+    }
+
+    const normalizedProvince = normalize(shippingInfo.province);
+    
+    const match = shippingCosts.find(
+      (c) => normalize(c.name) === normalizedProvince
+    );
+
+    if (match) {
+      setShippingFee(Number(match.cost));
+    } else {
+      const defaultRule = shippingCosts.find(
+        (c) => {
+          const n = normalize(c.name);
+          return n === "mac dinh" || n === "khac" || n === "tinh khac";
+        }
+      );
+      setShippingFee(defaultRule ? Number(defaultRule.cost) : 0);
+    }
+  }, [shippingInfo.province, shippingCosts]);
 
   const subtotal = useMemo(
     () =>
@@ -211,7 +247,7 @@ const CheckoutPage = () => {
   );
 
   const discountAmount = coupon?.data?.discountAmount || 0;
-  const finalTotal = Math.max(subtotal - discountAmount, 0);
+  const finalTotal = Math.max(subtotal - discountAmount + shippingFee, 0);
   const productIds = useMemo(() => cart.map((i) => i.product?.id || i.id), [cart]);
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -266,6 +302,9 @@ const CheckoutPage = () => {
       }
     }
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
       const res = await orderAPI.create({
         items: items.map((i) => ({
@@ -277,10 +316,11 @@ const CheckoutPage = () => {
         payment_method_id: paymentMethod,
         shippingInfo: buildShippingPayload(),
         total: finalTotal,
+        shipping_fee: shippingFee,
         coupon_code: coupon?.data?.coupon?.code || null,
       });
 
-      const { paymentUrl } = res.data;
+      const { paymentUrl, orderId, order_code } = res.data;
       
       await clearCart();
       if (coupon) clearCoupon();
@@ -297,6 +337,13 @@ const CheckoutPage = () => {
           state: {
             email: shippingInfo.email,
             total: finalTotal,
+            orderId: orderId,
+            orderCode: order_code,
+            name: shippingInfo.name,
+            address: shippingInfo.address,
+            ward: shippingInfo.ward,
+            district: shippingInfo.district,
+            city: shippingInfo.province,
             items: items.map((i) => ({
               name: i.product.name,
               size: i.size,
@@ -309,6 +356,7 @@ const CheckoutPage = () => {
       }, 1200);
     } catch (err) {
       setWarningMsg(err.response?.data?.message || "Đặt hàng thất bại");
+      setIsSubmitting(false);
     }
   };
 
@@ -624,6 +672,12 @@ const CheckoutPage = () => {
                 </span>
               </div>
             )}
+            <div className="flex justify-between mt-1">
+              <span>Phí vận chuyển</span>
+              <span className="font-semibold text-gray-700">
+                {shippingFee > 0 ? `${shippingFee.toLocaleString()}đ` : "Miễn phí"}
+              </span>
+            </div>
             <div className="flex justify-between mt-2">
               <span className="font-semibold">Tổng cộng</span>
               <span className="font-bold text-blue-600">
@@ -640,10 +694,13 @@ const CheckoutPage = () => {
               ← Quay về giỏ hàng
             </span>
             <button
+              disabled={isSubmitting}
               onClick={handlePlaceOrder}
-              className="flex-1 py-3 font-semibold text-white bg-blue-600 rounded hover:bg-blue-700"
+              className={`flex-1 py-3 font-semibold text-white rounded transition-colors ${
+                isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              ĐẶT HÀNG
+              {isSubmitting ? "ĐANG XỬ LÝ..." : "ĐẶT HÀNG"}
             </button>
           </div>
         </div>
