@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ShoppingCart, ChevronUp, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import storeInfoAPI from "../../../api/storeInfo.api";
-
+import zaloImg from '../../../assets/zalo.jpg'
 export default function FloatingActions() {
   const navigate = useNavigate();
   const [showScroll, setShowScroll] = useState(false);
@@ -18,6 +18,7 @@ export default function FloatingActions() {
       try {
         const res = await storeInfoAPI.get();
         if (res.data.data) {
+          console.log("FAB Store Info:", res.data.data);
           setStoreInfo(res.data.data);
         }
       } catch (err) {
@@ -39,21 +40,24 @@ export default function FloatingActions() {
   return (
     <div className="fixed bottom-6 right-6 z-[999] flex flex-col gap-3 group">
       {/* Zalo Button */}
-      {zaloPhone && (
-        <a
-          href={zaloLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-14 h-14 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden animate-bounce-slow"
-          title="Chat qua Zalo"
-        >
-          <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_Zalo.svg" 
-            alt="Zalo" 
-            className="w-8 h-8 object-contain"
-          />
-        </a>
-      )}
+      <div className="relative group/zalo">
+          {/* Pulsing ring */}
+          <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-25 group-hover/zalo:hidden"></div>
+          
+          <a
+            href={zaloLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative flex items-center justify-center w-14 h-14 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+            title="Chat qua Zalo"
+          >
+            <img 
+              src={zaloImg}
+              alt="Zalo" 
+              className="w-10 h-10 object-contain hover:scale-110 transition-transform"
+            />
+          </a>
+        </div>
 
       {/* Support / Assistant Button */}
       <button
