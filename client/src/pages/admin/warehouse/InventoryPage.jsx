@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Search, ArrowUpDown, ArrowUpCircle, Layers, Home } from "lucide-react";
+import { Search, ArrowUpDown, ArrowUpCircle, Layers, Home, FileUp, Download } from "lucide-react";
+import { toast } from "react-toastify";
+import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -25,6 +27,7 @@ export default function InventoryPage() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const navigate = useNavigate();
   const admin = useSelector((state) => state.auth.user);
@@ -108,6 +111,49 @@ export default function InventoryPage() {
     }
   };
 
+  const handleImportExcel = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      await warehouseHistoryAPI.importExcel(file);
+      toast.success("Nhập Excel thành công!");
+      fetchInventory();
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Lỗi khi nhập Excel");
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const data = [
+      ["ID biến thể", "ID sản phẩm", "Kích thước", "Số lượng nhập"],
+      [126, 41, 37.5, 100],
+      [128, 41, 38.5, 100],
+      [76, 38, "43.0", 20],
+      [130, 41, "40.0", 100],
+      [131, 41, 40.5, 100],
+      [132, 41, "41.0", 100],
+      [133, 41, 41.5, 100],
+      [134, 41, "42.0", 100],
+      [135, 41, 42.5, 100],
+      [136, 41, "43.0", 100],
+      [137, 41, 43.5, 100],
+      [61, 37, 38.5, 20],
+      [78, 12, "37.0", 100],
+      [124, 41, 36.5, 93],
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+    XLSX.writeFile(workbook, "Mau_Nhap_Kho.xlsx");
+  };
+
   if (loading) {
     return (
       <div className="p-6 space-y-3">
@@ -125,12 +171,32 @@ export default function InventoryPage() {
           <h1 className="text-2xl font-bold">Tổng Kho Sản Phẩm</h1>
           <p className="text-gray-500">Theo dõi tồn kho & hiệu suất</p>
         </div>
-        <Breadcrumb
-          items={[
-            { label: "Trang chủ", href: "/admin", icon: <Home className="w-4 h-4" /> },
-            { label: "Quản lý kho", icon: <Layers className="w-4 h-4" /> },
-          ]}
-        />
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleDownloadTemplate}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Download size={18} />
+            <span>Tải mẫu</span>
+          </button>
+          <label className={`flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 transition-colors ${importing ? "opacity-50 cursor-not-allowed" : ""}`}>
+            <FileUp size={18} />
+            <span>{importing ? "Đang xử lý..." : "Nhập Excel"}</span>
+            <input
+              type="file"
+              className="hidden"
+              accept=".xlsx, .xls"
+              onChange={handleImportExcel}
+              disabled={importing}
+            />
+          </label>
+          <Breadcrumb
+            items={[
+              { label: "Trang chủ", href: "/admin", icon: <Home className="w-4 h-4" /> },
+              { label: "Quản lý kho", icon: <Layers className="w-4 h-4" /> },
+            ]}
+          />
+        </div>
       </div>
 
       <div className="overflow-x-auto bg-white border shadow rounded-xl">

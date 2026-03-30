@@ -17,6 +17,14 @@ export const warehouseHistoryAPI = {
   },
 
   delete: (id) => apiClient.delete(`/warehouse-histories/${id}`),
+
+  importExcel: (file) => {
+    const formData = new FormData();
+    formData.append("excel", file);
+    return apiClient.post("/warehouse-histories/import-excel", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };
 
 export default warehouseHistoryAPI;

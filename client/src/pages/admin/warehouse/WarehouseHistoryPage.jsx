@@ -2,26 +2,47 @@ import React, { useEffect, useState } from "react";
 import warehouseHistoryAPI from "../../../api/warehouseHistory.api";
 import Breadcrumb from "@/components/Breadcrumb";
 import CustomTooltip from "@/components/CustomTooltip";
+import { FileUp } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function WarehouseHistoryPage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await warehouseHistoryAPI.getAll();
+      setHistory(res.data.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await warehouseHistoryAPI.getAll();
-        setHistory(res.data.data);
-        console.log(history)
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchHistory();
   }, []);
+
+  const handleImportExcel = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      await warehouseHistoryAPI.importExcel(file);
+      toast.success("Nhập Excel thành công!");
+      fetchHistory(); // Refresh list
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Lỗi khi nhập Excel");
+    } finally {
+      setImporting(false);
+      e.target.value = ""; // Reset input
+    }
+  };
 
   if (loading) {
     return (
@@ -44,13 +65,26 @@ export default function WarehouseHistoryPage() {
           <h1 className="text-2xl font-bold">Lịch Sử Điều Chỉnh Kho</h1>
           <p className="text-gray-500">Theo dõi các thay đổi tồn kho</p>
         </div>
-        <Breadcrumb
-          items={[
-            { label: "Trang chủ", href: "/admin" },
-            { label: "Quản lý kho" },
-            { label: "Lịch sử điều chỉnh" },
-          ]}
-        />
+        <div className="flex items-center gap-3">
+          <label className={`flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 transition-colors ${importing ? "opacity-50 cursor-not-allowed" : ""}`}>
+            <FileUp size={18} />
+            <span>{importing ? "Đang xử lý..." : "Nhập Excel"}</span>
+            <input
+              type="file"
+              className="hidden"
+              accept=".xlsx, .xls"
+              onChange={handleImportExcel}
+              disabled={importing}
+            />
+          </label>
+          <Breadcrumb
+            items={[
+              { label: "Trang chủ", href: "/admin" },
+              { label: "Quản lý kho" },
+              { label: "Lịch sử điều chỉnh" },
+            ]}
+          />
+        </div>
       </div>
 
       {/* TABLE */}
