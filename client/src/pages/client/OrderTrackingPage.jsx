@@ -72,17 +72,28 @@ export default function OrderTrackingPage() {
 
     return () => socketRef.current.disconnect();
   }, [order?.id]);
-      const handleCancelOrder = async () => {
-      try {
-        await orderAPI.cancel(order.id, cancelReason);
+  const [refundMessage, setRefundMessage] = useState("");
 
-        setOrder((prev) => ({ ...prev, status: "Cancelled" }));
-        setShowCancelWarning(false);
+  const handleCancelOrder = async () => {
+    try {
+      const res = await orderAPI.cancel(order.id, cancelReason);
+
+      setOrder((prev) => ({ ...prev, status: "Cancelled" }));
+      setShowCancelWarning(false);
+      
+      // Hiển thị thông báo hoàn tiền nếu là ZaloPay
+      const isZaloPay = order.paymentMethod?.name?.toLowerCase().includes("zalo");
+      const wasPaid = order.payment_status === "Paid";
+      
+      if (isZaloPay && wasPaid) {
+        setRefundMessage("Đơn hàng đã hủy. Tiền sẽ được hoàn về tài khoản ZaloPay trong vòng 3-5 ngày làm việc.");
+      } else {
         setShowSuccess(true);
-      } catch (error) {
-        alert("Huỷ đơn thất bại");
       }
-    };
+    } catch (error) {
+      alert("Huỷ đơn thất bại: " + (error.response?.data?.message || "Lỗi không xác định"));
+    }
+  };
 
       
   if (loading) {
@@ -355,6 +366,13 @@ export default function OrderTrackingPage() {
         <SuccessNotification
           message="Huỷ đơn hàng thành công!"
           onClose={() => setShowSuccess(false)}
+        />
+      )}
+
+      {refundMessage && (
+        <SuccessNotification
+          message={refundMessage}
+          onClose={() => setRefundMessage("")}
         />
       )}
     </>
