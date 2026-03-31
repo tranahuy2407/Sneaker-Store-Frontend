@@ -13,9 +13,11 @@ export default function Home() {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [allProducts, setAllProducts] = useState([]);
   const [homeSections, setHomeSections] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const [sectionsRes, productRes] = await Promise.all([
           homeSectionAPI.getActive(),
@@ -34,6 +36,8 @@ export default function Home() {
         setAllProducts(productsWithDiscount);
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu trang chủ:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -42,10 +46,19 @@ export default function Home() {
 
   const getSectionProducts = useMemo(() => {
     return (section) => {
+      if (!allProducts.length) return []; // Chờ allProducts load xong
+
       if (section.products && section.products.length > 0) {
         return section.products.map(p => {
           const productId = p.product_id || p.id;
-          const fullProduct = allProducts.find(ap => ap.id === productId) || p;
+          // Tìm product đầy đủ từ allProducts
+          const fullProduct = allProducts.find(ap => ap.id === productId);
+          
+          if (!fullProduct) {
+            console.warn(`Product ${productId} not found in allProducts`);
+            return p;
+          }
+          
           const price = fullProduct.price || p.price || 0;
           const discountPrice = fullProduct.discountPrice || p.discountPrice || fullProduct.price || p.price || 0;
           const discount = discountPrice < price ? Math.round(((price - discountPrice) / price) * 100) : 0;
@@ -55,9 +68,9 @@ export default function Home() {
             price, 
             discountPrice, 
             discount,
-            sizes: fullProduct.sizes || p.sizes || []
+            sizes: fullProduct.sizes || []
           };
-        });
+        }).filter(Boolean); // Loại bỏ undefined
       }
 
       if (section.section_type === "brand") {
@@ -82,15 +95,21 @@ export default function Home() {
       <Navbar onHeightChange={setNavbarHeight} />
       <ProductSlider />
       <Slide />
-      {homeSections.map((section) => (
-        <BrandSection
-          key={section.id}
-          title={section.title}
-          slug={section.slug}
-          banner={section.banner_url}
-          products={getSectionProducts(section)}
-        />
-      ))}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        homeSections.map((section) => (
+          <BrandSection
+            key={section.id}
+            title={section.title}
+            slug={section.slug}
+            banner={section.banner_url}
+            products={getSectionProducts(section)}
+          />
+        ))
+      )}
       <Footer />
     </div>
   );
