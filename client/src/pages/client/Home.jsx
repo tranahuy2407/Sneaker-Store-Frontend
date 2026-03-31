@@ -45,12 +45,13 @@ export default function Home() {
   const getSectionProducts = (section) => {
     // Nếu section đã có danh sách sản phẩm được gán trực tiếp (từ Admin)
     if (section.products && section.products.length > 0) {
-      // Chuẩn hóa dữ liệu sản phẩm tương tự như allProducts (tính discount...)
+      // Lấy sản phẩm đầy đủ từ allProducts để có sizes và các thông tin khác
       return section.products.map(p => {
-        const price = p.price || 0;
-        const discountPrice = p.discountPrice || p.price || 0;
+        const fullProduct = allProducts.find(ap => ap.id === p.id) || p;
+        const price = fullProduct.price || 0;
+        const discountPrice = fullProduct.discountPrice || fullProduct.price || 0;
         const discount = discountPrice < price ? Math.round(((price - discountPrice) / price) * 100) : 0;
-        return { ...p, price, discountPrice, discount };
+        return { ...fullProduct, price, discountPrice, discount };
       });
     }
 

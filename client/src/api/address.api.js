@@ -1,4 +1,5 @@
-const BASE_URL = "/api/v1/address";
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const BASE_URL = `${API_URL}/address`;
 
 const mapToOption = (item) => ({
   value: item.id,
