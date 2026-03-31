@@ -25,6 +25,10 @@ export const orderAPI = {
 
   updateStatus: (id, status) =>
     apiClient.put(`/admin/orders/${id}/status`, { status }),
+
+  queryZaloPayStatus: (app_trans_id) => {
+    return apiClient.get(`/orders/zalopay-status/${app_trans_id}`);
+  },
 };
 
 export default orderAPI;

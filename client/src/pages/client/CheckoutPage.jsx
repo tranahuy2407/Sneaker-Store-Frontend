@@ -322,8 +322,11 @@ const CheckoutPage = () => {
 
       const { paymentUrl, orderId, order_code } = res.data;
       
-      await clearCart();
-      if (coupon) clearCoupon();
+      // Chỉ xoá giỏ hàng ngay nếu là thanh toán COD (không có paymentUrl)
+      if (!paymentUrl) {
+         await clearCart();
+         if (coupon) clearCoupon();
+      }
 
       if (paymentUrl) {
         window.location.href = paymentUrl;

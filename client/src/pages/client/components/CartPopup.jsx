@@ -94,7 +94,7 @@ const totalAmount = cart.reduce((sum, item) => {
 
 
         <button
-          onClick={() => removeFromCart(item.id, item.size)}
+          onClick={() => removeFromCart(item.productSizeId)}
           className="mt-1 text-xs text-red-500 hover:underline"
         >
           × Xóa sản phẩm

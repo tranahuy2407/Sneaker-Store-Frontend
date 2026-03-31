@@ -245,19 +245,28 @@ export default function OrderTrackingPage() {
               ))}
             </div>
 
-            {/* ===== CANCEL BUTTON ===== */}
+            {/* ===== CANCEL/PAYMENT BUTTONS ===== */}
             {order.status === "Pending" && (
               <>
                 <hr className="my-5" />
 
-                <div className="flex justify-end">
-                 <button
-                  onClick={() => setShowReasonModal(true)}
-                  className="px-6 py-2 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700"
-                >
-                  Huỷ đơn hàng
-                </button>
-
+                <div className="flex justify-end gap-3">
+                  {/* Nút thanh toán lại cho ZaloPay chưa thanh toán */}
+                  {order.paymentMethod?.name?.toLowerCase().includes("zalo") && 
+                   order.payment_status === "Unpaid" && (
+                    <button
+                      onClick={() => navigate(`/checkout?retry=${order.id}`)}
+                      className="px-6 py-2 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                    >
+                      Thanh toán lại
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowReasonModal(true)}
+                    className="px-6 py-2 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700"
+                  >
+                    Huỷ đơn hàng
+                  </button>
                 </div>
               </>
             )}

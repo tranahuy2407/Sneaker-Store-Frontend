@@ -30,7 +30,15 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     if (!isAuthenticated) {
       const stored = localStorage.getItem("cart");
-      if (stored) setCart(JSON.parse(stored));
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Normalize items to ensure they have key property
+        const normalized = parsed.map(item => ({
+          ...item,
+          key: item.key || String(item.productSizeId),
+        }));
+        setCart(normalized);
+      }
       setInitialized(true);
     }
   }, [isAuthenticated]);

@@ -37,6 +37,7 @@ import ShippingCostPage from "@/pages/admin/shipping-costs/ShippingCostPage.jsx"
 import OrderDetailPage from "@/pages/admin/orders/OrderDetailPage.jsx";
 import OrderTrackingPage from "@/pages/client/OrderTrackingPage.jsx";
 import OrderSuccessPage from "@/pages/client/OrderSuccessPage.jsx";
+import PaymentReturnPage from "@/pages/client/PaymentReturnPage.jsx";
 import TrackOrderPage from "@/pages/client/TrackOrderPage.jsx";
 import CouponPage from "@/pages/admin/coupons/CouponPage.jsx";
 import PromotionDetailPage from "@/pages/admin/promotions/PromotionDetailPage.jsx";
@@ -129,6 +130,10 @@ export const routes = [
   {
     path: "/payment-success",
     element: <OrderSuccessPage />,
+  },
+  {
+    path: "/payment-return",
+    element: <PaymentReturnPage />,
   },
 
   {
