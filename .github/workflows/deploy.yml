@@ -31,13 +31,11 @@ jobs:
         run: npm install -g vercel
 
       - name: Create Vercel config
-        working-directory: client
         run: |
-          mkdir -p .vercel
-          echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
+          mkdir -p client/.vercel
+          echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > client/.vercel/project.json
 
       - name: Deploy to Vercel
-        working-directory: client
         run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
