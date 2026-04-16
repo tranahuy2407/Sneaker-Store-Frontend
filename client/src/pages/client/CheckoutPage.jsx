@@ -366,10 +366,10 @@ const CheckoutPage = () => {
   /* ================== UI ================== */
   return (
     <div className="min-h-screen bg-white">
-      <div className="grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 mx-auto md:grid-cols-3">
+      <div className="grid max-w-6xl grid-cols-1 gap-6 lg:gap-10 px-3 sm:px-4 py-6 sm:py-10 mx-auto lg:grid-cols-3">
         {/* ================= LEFT ================= */}
-        <div className="space-y-6">
-          <h1 className="text-3xl font-bold text-blue-600">SNEAKERSTORE</h1>
+        <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-600">SNEAKERSTORE</h1>
 
           {/* ADDRESS BOOK */}
           {isAuthenticated && (
@@ -562,15 +562,15 @@ const CheckoutPage = () => {
         </div>
 
         {/* ================= MIDDLE ================= */}
-        <div className="space-y-4">
+        <div className="space-y-4 order-3 lg:order-2">
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">Vận chuyển</h2>{" "}
-            <div className="px-4 py-3 text-blue-700 border border-blue-200 rounded bg-blue-50">
+            <h2 className="text-base sm:text-lg font-semibold">Vận chuyển</h2>{" "}
+            <div className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm text-blue-700 border border-blue-200 rounded bg-blue-50">
               {" "}
               Vui lòng nhập đầy đủ địa chỉ giao hàng{" "}
             </div>{" "}
           </div>
-          <h2 className="text-lg font-semibold">Thanh toán</h2>
+          <h2 className="text-base sm:text-lg font-semibold">Thanh toán</h2>
 
           {paymentMethods.map((m) => {
             const isSelected = paymentMethod === m.id;
@@ -603,25 +603,25 @@ const CheckoutPage = () => {
         </div>
 
         {/* ================= RIGHT ================= */}
-        <div className="pl-6 space-y-4 border-l">
-          <h2 className="font-semibold">Đơn hàng</h2>
+        <div className="lg:pl-6 space-y-4 lg:border-l order-1 lg:order-3">
+          <h2 className="font-semibold text-base sm:text-lg">Đơn hàng</h2>
 
           {items.map((i) => (
             <div
               key={`${i.product.id}-${i.size}`}
-              className="flex items-center gap-4"
+              className="flex items-center gap-3 sm:gap-4"
             >
               <img
                 src={i.product.images?.[0]?.url}
-                className="w-16 h-16 border rounded"
+                className="w-12 h-12 sm:w-16 sm:h-16 border rounded flex-shrink-0"
               />
-              <div className="flex-1">
-                <p>{i.product.name}</p>
-                <p className="text-sm font-bold text-gray-500">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm sm:text-base line-clamp-1">{i.product.name}</p>
+                <p className="text-xs sm:text-sm font-bold text-gray-500">
                   Size: {i.size}
                 </p>
               </div>
-              <span className="font-semibold">
+              <span className="font-semibold text-sm sm:text-base flex-shrink-0">
                 {(i.product.discountPrice ?? i.product.price).toLocaleString()}{" "}
                 đ x {i.quantity}
               </span>
@@ -689,17 +689,17 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <div className="flex gap-3 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <span
               onClick={() => navigate("/cart")}
-              className="py-2 text-sm text-blue-600 cursor-pointer hover:underline"
+              className="py-2 text-sm text-blue-600 cursor-pointer hover:underline text-center sm:text-left order-2 sm:order-1"
             >
               ← Quay về giỏ hàng
             </span>
             <button
               disabled={isSubmitting}
               onClick={handlePlaceOrder}
-              className={`flex-1 py-3 font-semibold text-white rounded transition-colors ${
+              className={`flex-1 py-3 font-semibold text-white rounded transition-colors order-1 sm:order-2 ${
                 isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
               }`}
             >

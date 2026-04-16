@@ -128,6 +128,10 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = true;
         state.checkingAuth = false;
         state.profileLoaded = true;
+        // Lưu token vào localStorage cho mobile
+        if (action.payload.user?.accessToken) {
+          localStorage.setItem("accessToken", action.payload.user.accessToken);
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -144,6 +148,10 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = true;
         state.checkingAuth = false;
         state.profileLoaded = true;
+        // Lưu token vào localStorage cho mobile
+        if (action.payload.user?.accessToken) {
+          localStorage.setItem("accessToken", action.payload.user.accessToken);
+        }
       })
       .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false;
@@ -155,6 +163,7 @@ const userAuthSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.checkingAuth = false;
+        localStorage.removeItem("accessToken");
       })
 
       /* CHECK AUTH */
@@ -163,11 +172,16 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = true;
         state.checkingAuth = false;
         state.profileLoaded = true;
+        // Cập nhật token mới từ refresh
+        if (action.payload.user?.accessToken) {
+          localStorage.setItem("accessToken", action.payload.user.accessToken);
+        }
       })
       .addCase(checkUserAuth.rejected, (state) => {
         state.user = null;
         state.isAuthenticated = false;
         state.checkingAuth = false;
+        localStorage.removeItem("accessToken");
       })
 
       /* REFRESH PROFILE */

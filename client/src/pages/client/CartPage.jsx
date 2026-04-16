@@ -77,7 +77,8 @@ const CartPage = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto border rounded-lg">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto border rounded-lg">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b bg-gray-50">
@@ -160,6 +161,58 @@ const CartPage = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-4">
+              {cart.map((item) => {
+                const product = item.product || item;
+                const originalPrice = product.price ?? 0;
+                const discountPrice = product.discountPrice ?? originalPrice;
+
+                return (
+                  <div key={item.key} className="flex gap-3 p-3 bg-white border rounded-lg">
+                    <img
+                      src={product.images?.find((i) => i.isDefault)?.url || product.images?.[0]?.url || defaultImage}
+                      alt={product.name}
+                      className="object-cover w-24 h-24 border rounded-md flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-700 text-sm line-clamp-2 mb-1">{product.name}</h3>
+                      <p className="text-xs text-gray-500 mb-1">Size: {item.size || "-"}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-semibold text-red-500 text-sm">{discountPrice.toLocaleString()}đ</span>
+                        {originalPrice > discountPrice && (
+                          <span className="text-xs text-gray-400 line-through">{originalPrice.toLocaleString()}đ</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <button
+                            className="w-7 h-7 border rounded text-sm"
+                            onClick={() => updateQuantity(item.key, item.quantity - 1)}
+                          >
+                            -
+                          </button>
+                          <span className="w-8 text-center text-sm">{item.quantity}</span>
+                          <button
+                            className="w-7 h-7 border rounded text-sm"
+                            onClick={() => updateQuantity(item.key, item.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <button
+                          className="text-gray-400 hover:text-red-500 p-1"
+                          onClick={() => removeFromCart(item.productSizeId)}
+                        >
+                          <FaTrashAlt size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           <div className="flex flex-col gap-6 mt-8 md:flex-row">
             {/* LEFT — VOUCHER */}

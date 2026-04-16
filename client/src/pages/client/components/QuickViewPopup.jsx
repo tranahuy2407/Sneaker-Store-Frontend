@@ -36,11 +36,11 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
   
   return (
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="relative flex flex-col w-full max-w-4xl gap-6 p-6 bg-white shadow-xl rounded-xl md:flex-row"
+        className="relative flex flex-col w-full max-w-4xl max-h-[90vh] overflow-y-auto gap-4 sm:gap-6 p-4 sm:p-6 bg-white shadow-xl rounded-xl md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
         {" "}
@@ -48,17 +48,17 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
           ×{" "}
         </button>
         {/* Ảnh sản phẩm */}
-        <div className="flex items-center justify-center md:w-1/2">
+        <div className="flex items-center justify-center w-full md:w-1/2">
           <img
             src={product.images?.[0]?.url || imageDefault}
             alt={product.name}
-            className="object-cover w-full rounded-md max-h-96"
+            className="object-contain w-full rounded-md max-h-48 sm:max-h-64 md:max-h-96"
           />
         </div>
         {/* Thông tin sản phẩm */}
-        <div className="flex flex-col justify-between md:w-1/2">
+        <div className="flex flex-col justify-between w-full md:w-1/2">
           <div>
-            <h3 className="mb-2 text-2xl font-bold transition-colors duration-200 cursor-pointer hover:text-blue-600">
+            <h3 className="mb-2 text-lg sm:text-xl md:text-2xl font-bold transition-colors duration-200 cursor-pointer hover:text-blue-600 line-clamp-2">
               {product.name}
             </h3>
 
@@ -108,9 +108,9 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
 
             {/* Chọn size */}
 
-            <p className="mb-2 font-semibold">Size:</p>
+            <p className="mb-2 font-semibold text-sm sm:text-base">Size:</p>
 
-            <div className="grid grid-cols-6 gap-2 mb-4">
+            <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2 mb-4">
               {sizes.map((size) => {
                 const sizeObj = product.sizes?.find((s) => s.size == size);
                 const exists = !!sizeObj;
@@ -122,7 +122,7 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
                     key={size}
                     onClick={() => !disabled && setSelectedSize(size)}
                     className={`
-            relative cursor-pointer border rounded text-center py-2 select-none transition
+            relative cursor-pointer border rounded text-center py-1.5 sm:py-2 text-xs sm:text-sm select-none transition
             ${
               selectedSize === size && !disabled
                 ? "bg-red-500 text-white font-semibold"
@@ -157,13 +157,13 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
                       : q - 1
                   )
                 }
-                className="w-8 h-8 border rounded hover:bg-gray-100"
+                className="w-7 h-7 sm:w-8 sm:h-8 border rounded hover:bg-gray-100 text-sm sm:text-base"
               >
                 -
               </button>
               <input
                 type="number"
-                className="w-12 text-center border-t border-b"
+                className="w-10 sm:w-12 text-center border-t border-b text-sm sm:text-base"
                 value={quantity}
                 onChange={(e) =>
                   setQuantity(Math.max(1, parseInt(e.target.value) || 1))
@@ -177,7 +177,7 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
                       : q + 1
                   )
                 }
-                className="w-8 h-8 border rounded hover:bg-gray-100"
+                className="w-7 h-7 sm:w-8 sm:h-8 border rounded hover:bg-gray-100 text-sm sm:text-base"
               >
                 +
               </button>
@@ -188,7 +188,7 @@ const QuickViewPopup = ({ product, onClose, onSuccess }) => {
           {/* Nút thêm vào giỏ */}
           <div className="flex justify-end">
             <button
-              className="px-6 py-3 text-white bg-black rounded-md hover:bg-gray-800"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-white bg-black rounded-md hover:bg-gray-800"
            onClick={() => {
           if (!selectedProductSize) {
             setShowWarning(true);
