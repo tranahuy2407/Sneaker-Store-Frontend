@@ -3,10 +3,13 @@ import { ShoppingCart, ChevronUp, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import storeInfoAPI from "../../../api/storeInfo.api";
 import zaloImg from '../../../assets/zalo.jpg'
+import ChatbotWidget from "./ChatbotWidget";
+
 export default function FloatingActions() {
   const navigate = useNavigate();
   const [showScroll, setShowScroll] = useState(false);
   const [storeInfo, setStoreInfo] = useState(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,9 +62,9 @@ export default function FloatingActions() {
           </a>
         </div>
 
-      {/* Support / Assistant Button */}
+      {/* Support / Assistant Button - Open Chatbot */}
       <button
-        onClick={() => navigate("/lien-he")}
+        onClick={() => setIsChatOpen(true)}
         className="flex items-center justify-center w-14 h-14 bg-[#FF7E5F] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
         title="Tư vấn khách hàng"
       >
@@ -106,6 +109,9 @@ export default function FloatingActions() {
           }
         `}
       </style>
+
+      {/* Chatbot Widget */}
+      <ChatbotWidget isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 }

@@ -14,6 +14,8 @@ function App() {
   const userChecking = useSelector((state) => state.userAuth.checkUserAuth);
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
+  const isAuthPath = ["/login", "/register"].includes(location.pathname);
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     dispatch(checkAuthStatus()); 
@@ -26,7 +28,7 @@ function App() {
 
  return (
   <>
-    {!isAdminPath && (
+    {!isAdminPath && !isAuthPath && (
       <>
         <CartPopup />
         <FloatingActions />
