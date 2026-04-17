@@ -4,6 +4,7 @@ import { productAPI } from "../../../api/product.api";
 import { categoryAPI } from "../../../api/category.api";
 import { brandAPI } from "../../../api/brand.api";
 import { useNavigate } from "react-router-dom";
+import { findBrandSlug, findCategorySlug, cleanSearchTerms, findSize, isDiscountQuery } from "../../../helpers/chatbotKeywords";
 
 const ChatbotWidget = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -99,6 +100,50 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }
   }, []);
 
+  // Get products by size
+  const getProductsBySize = useCallback(async (size) => {
+    try {
+      const params = { 
+        size: size,
+        limit: 6,
+        page: 1
+      };
+      const res = await productAPI.getAll(params);
+      const responseData = res.data.data || res.data;
+      let products = responseData?.data || responseData?.products || responseData || [];
+      if (!Array.isArray(products)) {
+        products = [];
+      }
+      return products;
+    } catch (err) {
+      return [];
+    }
+  }, []);
+
+  // Get discounted products - sắp xếp theo % giảm giá từ cao đến thấp
+  const getDiscountedProducts = useCallback(async () => {
+    try {
+      const params = { 
+        hasDiscount: true,
+        sortBy: 'discountPercent',
+        sortOrder: 'desc',
+        limit: 6,
+        page: 1
+      };
+      const res = await productAPI.getAll(params);
+      const responseData = res.data.data || res.data;
+      let products = responseData?.data || responseData?.products || responseData || [];
+      if (!Array.isArray(products)) {
+        products = [];
+      }
+      // Sắp xếp theo discountPercent từ cao đến thấp (nếu API chưa sắp xếp)
+      products.sort((a, b) => (b.discountPercent || 0) - (a.discountPercent || 0));
+      return products;
+    } catch (err) {
+      return [];
+    }
+  }, []);
+
   // Get products by category
   const getProductsByCategory = useCallback(async (slug) => {
     try {
@@ -136,73 +181,67 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     let searchType = "";
     let matchedKeyword = "";
 
-    // Check for brand mentions
-    const brandKeywords = {
-      "nike": "nike",
-      "adidas": "adidas",
-      "puma": "puma",
-      "vans": "vans",
-      "converse": "converse",
-      "new balance": "new-balance",
-      "reebok": "reebok",
-      "asics": "asics",
-    };
-
-    for (const [keyword, slug] of Object.entries(brandKeywords)) {
-      if (lowerMsg.includes(keyword)) {
-        foundProducts = await getProductsByBrand(slug);
-        
-        // Nếu brand API trả về rỗng, thử fallback sang search tổng quát
-        if (foundProducts.length === 0) {
-          foundProducts = await searchProducts(keyword);
-        }
-        
-        if (foundProducts.length > 0) {
-          searchType = "brand";
-          matchedKeyword = keyword.toUpperCase();
-          break;
-        }
+    // Check for brand mentions - dùng helper function từ chatbotKeywords
+    const brandMatch = findBrandSlug(msg);
+    if (brandMatch) {
+      foundProducts = await getProductsByBrand(brandMatch.slug);
+      
+      // Nếu brand API trả về rỗng, thử fallback sang search tổng quát
+      if (foundProducts.length === 0) {
+        foundProducts = await searchProducts(brandMatch.keyword);
+      }
+      
+      if (foundProducts.length > 0) {
+        searchType = "brand";
+        matchedKeyword = brandMatch.keyword.toUpperCase();
       }
     }
 
     // Check for category mentions if no brand found
     if (foundProducts.length === 0) {
-      const categoryKeywords = {
-        "giày chạy bộ": "giay-chay-bo",
-        "giày thể thao": "giay-the-thao",
-        "giày bóng rổ": "giay-bong-ro",
-        "giày đá bóng": "giay-da-bong",
-        "giày tây": "giay-tay",
-        "sneaker": "sneaker",
-        "giày nam": "giay-nam",
-        "giày nữ": "giay-nu",
-        "giày trẻ em": "giay-tre-em",
-      };
-
-      for (const [keyword, slug] of Object.entries(categoryKeywords)) {
-        if (lowerMsg.includes(keyword)) {
-          foundProducts = await getProductsByCategory(slug);
-          
-          // Nếu category API trả về rỗng, thử fallback sang search tổng quát
-          if (foundProducts.length === 0) {
-            foundProducts = await searchProducts(keyword);
-          }
-          
-          if (foundProducts.length > 0) {
-            searchType = "category";
-            matchedKeyword = keyword;
-            break;
-          }
+      const categoryMatch = findCategorySlug(msg);
+      if (categoryMatch) {
+        foundProducts = await getProductsByCategory(categoryMatch.slug);
+        
+        // Nếu category API trả về rỗng, thử fallback sang search tổng quát
+        if (foundProducts.length === 0) {
+          foundProducts = await searchProducts(categoryMatch.keyword);
+        }
+        
+        if (foundProducts.length > 0) {
+          searchType = "category";
+          matchedKeyword = categoryMatch.keyword;
         }
       }
     }
 
-    // If no specific brand/category, do general search
+    // Check for size mentions if no brand/category found
+    if (foundProducts.length === 0) {
+      const sizeMatch = findSize(msg);
+      if (sizeMatch) {
+        foundProducts = await getProductsBySize(sizeMatch);
+        
+        if (foundProducts.length > 0) {
+          searchType = "size";
+          matchedKeyword = `size ${sizeMatch}`;
+        }
+      }
+    }
+
+    // Check for discount query
+    if (foundProducts.length === 0 && isDiscountQuery(msg)) {
+      foundProducts = await getDiscountedProducts();
+      
+      if (foundProducts.length > 0) {
+        searchType = "discount";
+        matchedKeyword = "giảm giá";
+      }
+    }
+
+    // If no specific brand/category/size/discount, do general search
     if (foundProducts.length === 0) {
       // Remove common words and search
-      const searchTerms = lowerMsg
-        .replace(/(tìm|giày|cho|tôi|muốn|cần|mua|có|không|giúp|với|nhé|ạ)/g, "")
-        .trim();
+      const searchTerms = cleanSearchTerms(msg);
       if (searchTerms) {
         foundProducts = await searchProducts(searchTerms);
         searchType = "search";
@@ -212,7 +251,7 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }
 
     return { products: foundProducts, type: searchType, keyword: matchedKeyword };
-  }, [getProductsByBrand, getProductsByCategory, searchProducts]);
+  }, [getProductsByBrand, getProductsByCategory, getProductsBySize, getDiscountedProducts, searchProducts]);
 
   // Handle send message
   const handleSend = async () => {
@@ -242,10 +281,14 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
             ? `Tôi tìm thấy ${foundProducts.length} sản phẩm thương hiệu ${keyword}:`
             : type === "category"
             ? `Tôi tìm thấy ${foundProducts.length} sản phẩm trong danh mục "${keyword}":`
+            : type === "size"
+            ? `Tôi tìm thấy ${foundProducts.length} sản phẩm có ${keyword}:`
+            : type === "discount"
+            ? `🔥 Tôi tìm thấy ${foundProducts.length} sản phẩm ${keyword} (sắp xếp theo % giảm cao đến thấp):`
             : `Tôi tìm thấy ${foundProducts.length} sản phẩm phù hợp với "${keyword}":`,
           products: foundProducts,
-          searchType: type,        // 'brand', 'category', or 'search'
-          searchKeyword: keyword,   // Nike, giày chạy bộ, etc.
+          searchType: type,        // 'brand', 'category', 'size', 'discount', or 'search'
+          searchKeyword: keyword,   // Nike, giày chạy bộ, size 42, etc.
           time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, botMsg]);
@@ -399,7 +442,7 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                           {product.discountPercent > 0 && (
-                            <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                               -{product.discountPercent}%
                             </span>
                           )}
