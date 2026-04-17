@@ -134,7 +134,7 @@ export default function UserLogin() {
               disabled={loading}
               type="email"
               placeholder="example@gmail.com"
-              autocomplete="email"
+              autoComplete="email"
               className="w-full px-5 py-3 transition border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100"
             />
           </div>
@@ -150,7 +150,7 @@ export default function UserLogin() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               placeholder="••••••••"
-              autocomplete="current-password"
+              autoComplete="current-password"
               className="w-full px-5 py-3 transition border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100"
             />
 

@@ -23,5 +23,7 @@ export const userAPI = {
     apiClient.put(`/admin/users/${id}`, data),
   deleteUser: (id) => apiClient.delete(`/admin/users/${id}`),
   getUserStats: () => apiClient.get("/admin/users/stats"),
+  getLoyaltyStatus: () => apiClient.get("/user/loyalty/status"),
+  claimLoyaltyGift: (data) => apiClient.post("/user/loyalty/claim", data),
 };
 export default userAPI;

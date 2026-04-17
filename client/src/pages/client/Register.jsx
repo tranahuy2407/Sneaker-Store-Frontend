@@ -165,7 +165,7 @@ export default function Register() {
               onChange={(e) => setUserName(e.target.value)}
               disabled={loading}
               placeholder="Nguyễn Văn A"
-              autocomplete="username"
+               autoComplete="username"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
           </div>
@@ -181,7 +181,7 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
               placeholder="example@gmail.com"
-              autocomplete="email"
+               autoComplete="email"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
           </div>
@@ -197,7 +197,7 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               placeholder="••••••••"
-              autocomplete="new-password"
+               autoComplete="new-password"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
 
@@ -220,7 +220,7 @@ export default function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
               placeholder="••••••••"
-              autocomplete="new-password"
+               autoComplete="new-password"
               className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
             />
 

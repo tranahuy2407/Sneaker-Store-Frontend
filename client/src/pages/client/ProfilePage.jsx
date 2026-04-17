@@ -1,4 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import { logoutUser } from "../../redux/slices/userAuthSlice";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
@@ -21,7 +22,7 @@ import {
   refreshUserProfile,
 } from "../../redux/slices/userAuthSlice";
 import orderAPI from "@/api/order.api";
-import { Link } from "react-router-dom";
+import LoyaltySection from "./components/LoyaltySection";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -36,10 +37,7 @@ export default function ProfilePage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   const addresses = user?.addresses || [];
-  useEffect(() => {
-    dispatch(checkUserAuth());
-  }, [dispatch]);
-
+  
   useEffect(() => {
     if (!checkingAuth && user?.id && !profileLoaded) {
       dispatch(refreshUserProfile());
@@ -96,7 +94,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-50/50">
       <Header onHeightChange={setHeaderHeight} />
       <Navbar onHeightChange={setNavbarHeight} />
 
@@ -104,15 +102,23 @@ export default function ProfilePage() {
         {/* Breadcrumb */}
         <Breadcrumb items={breadcrumbItems} className="mb-6" />
 
-        <h1 className="mb-4 text-3xl font-bold">Trang khách hàng</h1>
-        <p className="mb-6">
-          Xin chào, <strong>{user?.name || user?.username}!</strong>
-        </p>
+        <div className="mb-8">
+            <h1 className="text-3xl font-extrabold text-gray-900">Trang cá nhân</h1>
+            <p className="text-gray-500 mt-1">
+            Xin chào, <span className="font-bold text-blue-600">{user?.name || user?.username}!</span>
+            </p>
+        </div>
+
+        {/* Loyalty Section */}
+        <LoyaltySection orders={orders} user={user} />
 
         <div className="flex flex-col gap-8 md:flex-row">
           {/* LEFT: Orders */}
           <div className="flex-1">
-            <h2 className="mb-4 text-xl font-semibold">Đơn hàng của bạn</h2>
+            <h2 className="mb-4 text-xl font-semibold flex items-center gap-2">
+                Đơn hàng của bạn 
+                <span className="text-sm font-normal text-gray-400">({orders.length})</span>
+            </h2>
             <div className="overflow-x-auto border rounded-lg">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -150,7 +156,7 @@ export default function ProfilePage() {
                   </td>
 
                   <td className="p-3 font-semibold text-red-500">
-                    {order.total_amount.toLocaleString()}đ
+                    {(order.total_amount || 0).toLocaleString()}đ
                   </td>
                     <td className="p-3 text-center">
                       <span

@@ -140,6 +140,7 @@ export default function CustomersPage() {
                 <th className="px-4 py-3">ID</th>
                 <th className="px-4 py-3">Tên đăng nhập</th>
                 <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3 text-center">Phân hạng VIP</th>
                 <th className="px-4 py-3 text-center">Trạng thái</th>
                 <th className="px-4 py-3 text-center">Hành động</th>
               </tr>
@@ -151,6 +152,17 @@ export default function CustomersPage() {
                   <td className="px-4 py-3">{u.id}</td>
                   <td className="px-4 py-3">{u.username}</td>
                   <td className="px-4 py-3">{u.email}</td>
+
+                  <td className="px-4 py-3 text-center">
+                    {(() => {
+                        const spent = u.total_spent || 0;
+                        if (spent >= 10000000) return <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-purple-100 text-purple-700 border border-purple-200">💎 DIAMOND (10M+)</span>;
+                        if (spent >= 5000000) return <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700 border border-blue-200">🥇 PLATINUM (5M+)</span>;
+                        if (spent >= 2000000) return <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">🥈 GOLD (2M+)</span>;
+                        if (spent >= 500000) return <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-gray-100 text-gray-700 border border-gray-200">🥉 SILVER (500k+)</span>;
+                        return <span className="text-gray-400 text-xs">-</span>;
+                    })()}
+                  </td>
 
                   <td className="px-4 py-3 text-center">
                     <span

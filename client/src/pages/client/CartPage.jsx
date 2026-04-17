@@ -4,15 +4,40 @@ import Navbar from "./components/Navbar";
 import { FaTrashAlt } from "react-icons/fa";
 import { useCart } from "@/context/CartProvider";
 import defaultImage from "../../assets/default.jpg";
-import { Home, ShoppingCart, Ticket } from "lucide-react";
+import { Home, ShoppingCart, Ticket, Trophy, ArrowRight } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Link, useNavigate } from "react-router-dom";
 import emptyImage from "@/assets/empty.png";
 import CouponModal from "./components/CouponModal";
+import { useSelector, useDispatch } from "react-redux";
+import orderAPI from "@/api/order.api";
+import { useEffect } from "react";
+
+const MILESTONES = [
+  { threshold: 500000, reward: "Mã giảm giá 5%" },
+  { threshold: 1500000, reward: "Mã giảm giá 10%" },
+  { threshold: 2000000, reward: "Mã giảm giá 15%" },
+  { threshold: 5000000, reward: "Mã giảm giá 20%" },
+  { threshold: 10000000, reward: "Tặng 1 đôi giày miễn phí" },
+];
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, coupon, setCoupon, clearCoupon } = useCart();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.userAuth);
+  const [totalSpent, setTotalSpent] = useState(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      orderAPI.getMyOrders().then((res) => {
+        const spent = (res.data.data || [])
+          .filter(o => o.status === "Completed")
+          .reduce((sum, o) => sum + (o.total_amount || 0), 0);
+        setTotalSpent(spent);
+      });
+    }
+  }, [user]);
+
   const [openCoupon, setOpenCoupon] = useState(false);
   const productIds = cart.map(i => i.product?.id || i.id);
   
@@ -46,9 +71,35 @@ const CartPage = () => {
         <Breadcrumb items={breadcrumbItems} className="mb-6" />
         <h2 className="mb-6 text-3xl font-bold">Giỏ hàng của bạn</h2>
         {cart.length > 0 && (
-          <div className="flex justify-end mb-6 -mt-20">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+            <div className="flex-1 w-full">
+              {user && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600 rounded-lg text-white">
+                      <Trophy size={18} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">CHƯƠNG TRÌNH KHÁCH HÀNG VIP</p>
+                      {totalSpent + subtotal >= (MILESTONES.find(m => m.threshold > totalSpent)?.threshold || 0) ? (
+                        <p className="text-sm font-semibold text-gray-800">
+                          🎉 Tuyệt vời! Bạn sẽ đạt mốc: <span className="text-blue-700 font-bold text-base">{(MILESTONES.find(m => m.threshold > totalSpent)?.reward)}</span> sau đơn hàng này!
+                        </p>
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-800">
+                          Bạn chỉ cách mốc nhận thưởng tiếp theo <span className="text-red-600 font-bold text-base">{((MILESTONES.find(m => m.threshold > totalSpent)?.threshold || 0) - (totalSpent + subtotal)).toLocaleString()}đ</span> nữa!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Link to="/profile" className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline">
+                    XEM QUÀ <ArrowRight size={14} />
+                  </Link>
+                </div>
+              )}
+            </div>
             <button
-              className="px-6 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              className="px-6 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 w-full md:w-auto"
               onClick={() => navigate("/")}
             >
               TIẾP TỤC MUA HÀNG
@@ -57,7 +108,7 @@ const CartPage = () => {
         )}
 
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-0">
+          <div className="flex flex-col items-center justify-center py-20">
             <img
               src={emptyImage}
               alt="Giỏ hàng trống"
