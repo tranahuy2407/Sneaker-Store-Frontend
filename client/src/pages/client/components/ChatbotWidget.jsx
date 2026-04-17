@@ -77,7 +77,7 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     try {
       const params = { 
         keyword: query,
-        limit: 6,
+        limit: 50, // Lấy nhiều hơn để filter chính xác
         page: 1
       };
       const res = await productAPI.getAll(params);
@@ -86,7 +86,14 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
       if (!Array.isArray(products)) {
         products = [];
       }
-      return products;
+      
+      // Filter chỉ lấy sản phẩm có tên chứa từ khóa (không phân biệt hoa thường)
+      const lowerQuery = query.toLowerCase();
+      const filteredProducts = products.filter(product => 
+        product.name && product.name.toLowerCase().includes(lowerQuery)
+      );
+      
+      return filteredProducts.slice(0, 6); // Tối đa 6 sản phẩm
     } catch (err) {
       return [];
     }
@@ -197,9 +204,10 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
         .replace(/(tìm|giày|cho|tôi|muốn|cần|mua|có|không|giúp|với|nhé|ạ)/g, "")
         .trim();
       if (searchTerms) {
-        foundProducts = await searchProducts(searchTerms || msg);
+        foundProducts = await searchProducts(searchTerms);
         searchType = "search";
-        matchedKeyword = msg;
+        // Hiển thị từ khóa đã clean thay vì cả câu gốc
+        matchedKeyword = searchTerms || msg;
       }
     }
 
@@ -374,45 +382,45 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                {/* Product Cards */}
+                {/* Product Cards - Horizontal Scroll */}
                 {msg.products && msg.products.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 ml-0 mr-8">
-                    {msg.products.slice(0, 4).map((product) => (
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide ml-0 pr-2">
+                    {msg.products.slice(0, 6).map((product) => (
                       <div
                         key={product.id || product._id}
                         onClick={() => handleProductClick(product.slug)}
-                        className="bg-white rounded-xl border border-orange-100 overflow-hidden cursor-pointer hover:shadow-lg hover:border-[#FF7E5F]/30 transition-all duration-300 group"
+                        className="flex-shrink-0 w-[140px] bg-white rounded-xl border border-orange-100 overflow-hidden cursor-pointer hover:shadow-lg hover:border-[#FF7E5F]/30 transition-all duration-300 group"
                       >
                         {/* Product Image */}
-                        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                        <div className="relative w-[140px] h-[140px] bg-gray-100 overflow-hidden">
                           <img
                             src={product.thumbnail || product.images?.[0] || "https://via.placeholder.com/150?text=No+Image"}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                           {product.discountPercent > 0 && (
-                            <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                               -{product.discountPercent}%
                             </span>
                           )}
                         </div>
                         {/* Product Info */}
                         <div className="p-2">
-                          <h4 className="text-xs font-semibold text-gray-800 line-clamp-2 leading-tight min-h-[2rem]">
+                          <h4 className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-tight h-[2.2rem]">
                             {product.name}
                           </h4>
                           <div className="flex items-center gap-1 mt-1">
                             {product.discountPrice ? (
                               <>
-                                <span className="text-xs font-bold text-[#FF7E5F]">
+                                <span className="text-[11px] font-bold text-[#FF7E5F]">
                                   {formatPrice(product.discountPrice)}
                                 </span>
-                                <span className="text-[10px] text-gray-400 line-through">
+                                <span className="text-[9px] text-gray-400 line-through">
                                   {formatPrice(product.price)}
                                 </span>
                               </>
                             ) : (
-                              <span className="text-xs font-bold text-[#FF7E5F]">
+                              <span className="text-[11px] font-bold text-[#FF7E5F]">
                                 {formatPrice(product.price)}
                               </span>
                             )}
@@ -423,8 +431,8 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
                   </div>
                 )}
 
-                {/* View All Button if more than 4 products */}
-                {msg.products && msg.products.length > 4 && (
+                {/* View All Button if more than 6 products */}
+                {msg.products && msg.products.length > 6 && (
                   <div className="flex justify-start">
                     <button
                       onClick={() => {
@@ -472,14 +480,14 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Replies */}
+          {/* Quick Replies - Horizontal Scroll */}
           <div className="px-4 py-2.5 bg-white border-t border-orange-100/30">
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x scrollbar-hide">
               {quickReplies.map((reply, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickReply(reply)}
-                  className="whitespace-nowrap px-3.5 py-1.5 bg-orange-50 border border-orange-200 rounded-full text-xs text-[#FF6B4A] hover:bg-[#FF7E5F] hover:border-[#FF7E5F] hover:text-white transition-all duration-200 font-medium shadow-sm"
+                  className="flex-shrink-0 snap-start whitespace-nowrap px-3.5 py-1.5 bg-orange-50 border border-orange-200 rounded-full text-xs text-[#FF6B4A] hover:bg-[#FF7E5F] hover:border-[#FF7E5F] hover:text-white transition-all duration-200 font-medium shadow-sm"
                 >
                   {reply}
                 </button>
@@ -528,12 +536,43 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
             transform: translateY(0) scale(1);
           }
         }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+        /* Desktop: Custom scrollbar */
+        @media (min-width: 769px) {
+          .scrollbar-hide::-webkit-scrollbar {
+            height: 6px;
+          }
+          .scrollbar-hide::-webkit-scrollbar-track {
+            background: #FFF5F0;
+            border-radius: 3px;
+          }
+          .scrollbar-hide::-webkit-scrollbar-thumb {
+            background: #FF7E5F;
+            border-radius: 3px;
+          }
+          .scrollbar-hide::-webkit-scrollbar-thumb:hover {
+            background: #FF6B4A;
+          }
+          .scrollbar-hide {
+            scrollbar-width: thin;
+            scrollbar-color: #FF7E5F #FFF5F0;
+          }
         }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        
+        /* Mobile: Hide scrollbar */
+        @media (max-width: 768px) {
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none !important;
+          }
+          .scrollbar-hide {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+          }
+          .overflow-x-auto {
+            overflow-x: scroll !important;
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch;
+          }
         }
       `}</style>
     </>
