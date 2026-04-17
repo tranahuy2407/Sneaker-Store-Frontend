@@ -121,18 +121,16 @@ try {
   localStorage.removeItem("userData");
 }
 
-const initialState = {
-  user: storedUser,
-  isAuthenticated: !!storedToken && !!storedUser,
-  profileLoaded: !!storedUser,
-  loading: false,
-  error: null,
-  checkingAuth: !!storedToken, // Chỉ checking nếu có token
-};
-
 const userAuthSlice = createSlice({
   name: "userAuth",
-  initialState,
+  initialState: {
+    user: storedUser,
+    isAuthenticated: !!storedToken, // Duy trì trạng thái đăng nhập dựa trên token có sẵn
+    profileLoaded: !!storedUser,
+    loading: false,
+    error: null,
+    checkingAuth: !!storedToken,
+  },
   reducers: {
     clearUserError: (state) => {
       state.error = null;
@@ -150,15 +148,9 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = true;
         state.checkingAuth = false;
         state.profileLoaded = true;
-        // Lưu token và user vào localStorage cho mobile
-        if (action.payload.user?.accessToken) {
-          localStorage.setItem("accessToken", action.payload.user.accessToken);
-          console.log("[Auth] Saved accessToken to localStorage");
-        }
-        // Luôn lưu userData để khôi phục sau reload
+        // Đảm bảo lưu thông tin người dùng ngay lập tức
         if (action.payload.user) {
           localStorage.setItem("userData", JSON.stringify(action.payload.user));
-          console.log("[Auth] Saved userData to localStorage");
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -176,15 +168,8 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = true;
         state.checkingAuth = false;
         state.profileLoaded = true;
-        // Lưu token và user vào localStorage cho mobile
-        if (action.payload.user?.accessToken) {
-          localStorage.setItem("accessToken", action.payload.user.accessToken);
-          console.log("[Auth] Saved accessToken to localStorage");
-        }
-        // Luôn lưu userData để khôi phục sau reload
         if (action.payload.user) {
           localStorage.setItem("userData", JSON.stringify(action.payload.user));
-          console.log("[Auth] Saved userData to localStorage");
         }
       })
       .addCase(googleLogin.rejected, (state, action) => {
@@ -212,27 +197,26 @@ const userAuthSlice = createSlice({
         state.checkingAuth = false;
         state.profileLoaded = true;
         state.error = null;
-        // Cập nhật token và user mới từ refresh
-        if (action.payload.user?.accessToken) {
-          localStorage.setItem("accessToken", action.payload.user.accessToken);
+        if (action.payload.user) {
+          localStorage.setItem("userData", JSON.stringify(action.payload.user));
         }
-        localStorage.setItem("userData", JSON.stringify(action.payload.user));
       })
       .addCase(checkUserAuth.rejected, (state, action) => {
-        state.user = null;
-        state.isAuthenticated = false;
         state.checkingAuth = false;
         state.error = action.payload;
-        // Chỉ xóa localStorage nếu lỗi là 401 (không xác thực)
-        // Giữ lại nếu là lỗi kết nối để thử lại sau
+        
+        // Chỉ xóa token và logout nếu server xác nhận token không hợp lệ (401)
         if (action.payload === "Phiên đăng nhập hết hạn" || action.payload === "Không xác thực") {
+          state.user = null;
+          state.isAuthenticated = false;
           localStorage.removeItem("accessToken");
           localStorage.removeItem("userData");
-        }
-        // Nếu lỗi kết nối, giữ nguyên localStorage để thử lại
-        if (action.payload === "Lỗi kết nối" && localStorage.getItem("accessToken")) {
-          // Giữ nguyên localStorage, có thể mạng sẽ phục hồi
-          state.isAuthenticated = true; // Giả định vẫn đăng nhập để không redirect
+        } else {
+          // Các lỗi khác (mạng, server 500) -> Giữ nguyên trạng thái để thử lại sau
+          // Giả định vẫn còn token để không đẩy user ra login
+          if (localStorage.getItem("accessToken")) {
+            state.isAuthenticated = true;
+          }
         }
       })
 

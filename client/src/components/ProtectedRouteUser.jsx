@@ -41,11 +41,12 @@ export default function ProtectedRouteUser({ children }) {
     return children;
   }
 
-  const shouldRedirect = error || (!isAuthenticated && !localAuth.token && !localAuth.user);
+  const isAuthError = error === "Phiên đăng nhập hết hạn" || error === "Không xác thực";
+  const hasNoIdentity = !isAuthenticated && !localAuth.token;
 
-  if (shouldRedirect) {
-    console.log("[ProtectedRoute] Redirect to login", { error, isAuthenticated, hasToken: !!localAuth.token, hasUser: !!localAuth.user });
-    return <Navigate to="/login" replace />;
+  if (isAuthError || (hasNoIdentity && localAuth.checked && !checkingAuth)) {
+    console.log("[ProtectedRoute] Redirect to login", { error, isAuthenticated, hasToken: !!localAuth.token });
+    return <Navigate to="/login" state={{ from: window.location.pathname }} replace />;
   }
 
   return children;
