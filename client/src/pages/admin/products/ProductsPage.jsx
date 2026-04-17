@@ -193,8 +193,8 @@ export default function ProductsPage() {
 
         {/* Filters */}
         <div className="p-4 mb-6 border rounded-lg bg-gray-50">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 flex-1">
               {/* SEARCH */}
               <div className="flex w-full overflow-hidden border rounded-md sm:w-64">
                 <input
@@ -281,8 +281,8 @@ export default function ProductsPage() {
         </div>
 
        {/* Table */}
-       <div className="overflow-x-hidden">
-          <table className="min-w-full text-sm text-left text-gray-700">
+        <div className="overflow-x-auto">
+          <table className="min-w-[1000px] w-full text-sm text-left text-gray-700">
             <thead className="text-xs text-gray-600 uppercase bg-gray-100 border-b">
               <tr>
                 <th className="px-4 py-3">Sản phẩm</th>

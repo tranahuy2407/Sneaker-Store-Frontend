@@ -130,7 +130,7 @@ export default function OrdersPage() {
 
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 text-sm border rounded-md hover:bg-gray-100"
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm border rounded-md hover:bg-gray-100 w-full sm:w-auto"
           >
             <RefreshCcw
               size={16}
@@ -140,8 +140,9 @@ export default function OrdersPage() {
           </button>
         </div>
 
-        {/* Table */}
-        <table className="w-full text-sm">
+         {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px]">
           <thead className="text-xs text-gray-600 uppercase bg-gray-100">
             <tr>
               <th className="px-4 py-3 text-center">Mã đơn</th>
@@ -197,6 +198,7 @@ export default function OrdersPage() {
           </tbody>
         </table>
       </div>
+    </div>
 
       {/* Pagination */}
       <Pagination

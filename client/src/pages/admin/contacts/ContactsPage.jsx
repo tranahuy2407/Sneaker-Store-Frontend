@@ -92,10 +92,10 @@ export default function ContactsPage() {
         ]}
       />
 
-      <div className="mt-6 flex gap-6">
+      <div className="mt-6 flex flex-col lg:flex-row gap-6">
         {/* Danh sách liên hệ */}
-        <div className="flex-1 overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
-          <table className="w-full text-left border-collapse">
+        <div className="flex-1 overflow-x-auto bg-white border border-gray-200 rounded-xl shadow-sm">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase">
                 <th className="px-4 py-4">Họ tên</th>
@@ -165,7 +165,7 @@ export default function ContactsPage() {
 
         {/* Chi tiết liên hệ */}
         {selected && (
-          <div className="w-96 flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4 self-start sticky top-6">
+          <div className="w-full lg:w-96 flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4 self-start lg:sticky lg:top-6">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-800 text-lg">Chi tiết liên hệ</h3>
               <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>

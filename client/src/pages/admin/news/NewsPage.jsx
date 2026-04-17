@@ -71,8 +71,8 @@ export default function NewsPage() {
         ]}
       />
 
-      <div className="mt-6 overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
-        <table className="w-full text-left border-collapse">
+      <div className="mt-6 overflow-x-auto bg-white border border-gray-200 rounded-xl shadow-sm">
+        <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase">
               <th className="px-6 py-4">Ảnh</th>

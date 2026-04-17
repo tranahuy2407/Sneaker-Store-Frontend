@@ -244,11 +244,11 @@ export default function StoreInfoPage() {
             </div>
           </div>
 
-          <div className="flex justify-end sticky bottom-0 bg-gray-50/80 backdrop-blur-sm p-4 rounded-xl border border-gray-200">
+          <div className="flex justify-end sticky bottom-0 bg-gray-50/80 backdrop-blur-sm p-4 rounded-xl border border-gray-200 z-10">
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-12 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-xl transition-all font-bold disabled:opacity-50"
+              className="flex items-center justify-center gap-2 w-full md:w-auto md:px-12 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-xl transition-all font-bold disabled:opacity-50"
             >
               {loading ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" /> : <Save size={20} />}
               {loading ? "Đang lưu..." : "Lưu Cấu Hình"}

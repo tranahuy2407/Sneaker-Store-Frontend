@@ -179,8 +179,8 @@ export default function BrandsPage() {
         </div>
 
         {/* Bảng thương hiệu */}
-        <div className="relative overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-700 min-w-[800px]">
             <thead className="text-xs text-gray-600 uppercase bg-gray-100 border-b">
               <tr>
                 <th className="px-4 py-3">Tên thương hiệu</th>

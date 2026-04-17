@@ -166,20 +166,20 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-6 bg-gray-50">
-      <div className="flex flex-col justify-between gap-4 mb-6 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-4 mb-6 lg:flex-row lg:items-center">
         <div>
           <h1 className="text-2xl font-bold">Tổng Kho Sản Phẩm</h1>
           <p className="text-gray-500">Theo dõi tồn kho & hiệu suất</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button 
             onClick={handleDownloadTemplate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
           >
             <Download size={18} />
             <span>Tải mẫu</span>
           </button>
-          <label className={`flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 transition-colors ${importing ? "opacity-50 cursor-not-allowed" : ""}`}>
+          <label className={`flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 transition-colors text-sm ${importing ? "opacity-50 cursor-not-allowed" : ""}`}>
             <FileUp size={18} />
             <span>{importing ? "Đang xử lý..." : "Nhập Excel"}</span>
             <input

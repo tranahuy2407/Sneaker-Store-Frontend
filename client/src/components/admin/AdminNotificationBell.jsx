@@ -105,7 +105,7 @@ useEffect(() => {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 bg-white border rounded-lg shadow-lg w-96">
+        <div className="absolute right-0 z-50 mt-2 bg-white border rounded-lg shadow-lg w-[calc(100vw-2rem)] sm:w-96">
           <div className="px-4 py-3 font-semibold border-b">
             Thông báo
           </div>

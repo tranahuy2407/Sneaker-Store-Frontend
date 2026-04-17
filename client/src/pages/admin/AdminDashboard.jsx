@@ -292,8 +292,8 @@ export default function AdminDashboard() {
               <h3 className="font-bold text-gray-800">Sản phẩm bán chạy</h3>
               <button className="text-blue-600 text-sm font-semibold hover:underline">Xem tất cả</button>
             </div>
-            <div className="p-0">
-              <table className="w-full text-left">
+            <div className="p-0 overflow-x-auto">
+              <table className="w-full text-left min-w-[500px]">
                 <thead>
                   <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                     <th className="px-6 py-3 font-semibold">Tên sản phẩm</th>
@@ -320,8 +320,8 @@ export default function AdminDashboard() {
               <h3 className="font-bold text-gray-800">Đơn hàng gần đây</h3>
               <button className="text-blue-600 text-sm font-semibold hover:underline">Quản lý đơn hàng</button>
             </div>
-            <div className="p-0">
-              <table className="w-full text-left">
+            <div className="p-0 overflow-x-auto">
+              <table className="w-full text-left min-w-[600px]">
                 <thead>
                   <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                     <th className="px-6 py-3 font-semibold">Mã đơn</th>

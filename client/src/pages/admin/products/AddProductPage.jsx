@@ -386,19 +386,19 @@ const handleSubmit = async (e) => {
           />
 
         {/* Floating buttons */}
-        <div className="fixed z-50 bottom-6 right-6">
-          <div className="flex items-center gap-3 p-4 bg-white shadow-lg rounded-xl">
+        <div className="fixed z-40 bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:relative md:bg-transparent md:border-0 md:p-0 md:flex md:justify-end md:mt-6">
+          <div className="flex items-center gap-3 md:shadow-lg md:rounded-xl md:bg-white md:p-4">
             <Button
               type="button"
               variant="secondary"
-              className="px-6 py-3 text-lg"
+              className="flex-1 px-6 py-3 text-lg md:flex-none"
               onClick={() => navigate("/admin/products")}
             >
               Hủy
             </Button>
             <Button
               type="button"
-              className={`px-6 py-3 text-lg ${
+              className={`flex-1 px-6 py-3 text-lg md:flex-none ${
                 loading ? "opacity-70 cursor-not-allowed" : "hover:scale-105"
               }`}
               onClick={handleSubmit}
