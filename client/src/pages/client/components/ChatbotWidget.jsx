@@ -136,7 +136,7 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
       if (!Array.isArray(products)) {
         products = [];
       }
-      // Sắp xếp theo discountPercent từ cao đến thấp (nếu API chưa sắp xếp)
+
       products.sort((a, b) => (b.discountPercent || 0) - (a.discountPercent || 0));
       return products;
     } catch (err) {
@@ -174,19 +174,15 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }
   }, []);
 
-  // Parse user intent and find matching products
   const parseAndSearch = useCallback(async (msg) => {
     const lowerMsg = msg.toLowerCase();
     let foundProducts = [];
     let searchType = "";
     let matchedKeyword = "";
-
-    // Check for brand mentions - dùng helper function từ chatbotKeywords
     const brandMatch = findBrandSlug(msg);
     if (brandMatch) {
       foundProducts = await getProductsByBrand(brandMatch.slug);
       
-      // Nếu brand API trả về rỗng, thử fallback sang search tổng quát
       if (foundProducts.length === 0) {
         foundProducts = await searchProducts(brandMatch.keyword);
       }
@@ -197,13 +193,11 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
       }
     }
 
-    // Check for category mentions if no brand found
     if (foundProducts.length === 0) {
       const categoryMatch = findCategorySlug(msg);
       if (categoryMatch) {
         foundProducts = await getProductsByCategory(categoryMatch.slug);
         
-        // Nếu category API trả về rỗng, thử fallback sang search tổng quát
         if (foundProducts.length === 0) {
           foundProducts = await searchProducts(categoryMatch.keyword);
         }
@@ -215,7 +209,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
       }
     }
 
-    // Check for size mentions if no brand/category found
     if (foundProducts.length === 0) {
       const sizeMatch = findSize(msg);
       if (sizeMatch) {
@@ -228,7 +221,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
       }
     }
 
-    // Check for discount query
     if (foundProducts.length === 0 && isDiscountQuery(msg)) {
       foundProducts = await getDiscountedProducts();
       
@@ -237,15 +229,11 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
         matchedKeyword = "giảm giá";
       }
     }
-
-    // If no specific brand/category/size/discount, do general search
     if (foundProducts.length === 0) {
-      // Remove common words and search
       const searchTerms = cleanSearchTerms(msg);
       if (searchTerms) {
         foundProducts = await searchProducts(searchTerms);
         searchType = "search";
-        // Hiển thị từ khóa đã clean thay vì cả câu gốc
         matchedKeyword = searchTerms || msg;
       }
     }
@@ -253,7 +241,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     return { products: foundProducts, type: searchType, keyword: matchedKeyword };
   }, [getProductsByBrand, getProductsByCategory, getProductsBySize, getDiscountedProducts, searchProducts]);
 
-  // Handle send message
   const handleSend = async () => {
     if (!inputMessage.trim()) return;
 
@@ -268,12 +255,10 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     setInputMessage("");
     setIsTyping(true);
 
-    // Search for products based on user message
     const { products: foundProducts, type, keyword } = await parseAndSearch(inputMessage);
 
     setTimeout(() => {
       if (foundProducts.length > 0) {
-        // Add bot message with products
         const botMsg = {
           id: Date.now() + 1,
           type: "bot",
@@ -287,13 +272,12 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
             ? `🔥 Tôi tìm thấy ${foundProducts.length} sản phẩm ${keyword} (sắp xếp theo % giảm cao đến thấp):`
             : `Tôi tìm thấy ${foundProducts.length} sản phẩm phù hợp với "${keyword}":`,
           products: foundProducts,
-          searchType: type,        // 'brand', 'category', 'size', 'discount', or 'search'
-          searchKeyword: keyword,   // Nike, giày chạy bộ, size 42, etc.
+          searchType: type,        
+          searchKeyword: keyword,  
           time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, botMsg]);
       } else {
-        // No products found - use default response
         const botResponse = generateBotResponse(inputMessage);
         setMessages((prev) => [
           ...prev,
@@ -309,7 +293,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }, 800);
   };
 
-  // Simple response generator for non-product queries
   const generateBotResponse = (msg) => {
     const lowerMsg = msg.toLowerCase();
     
@@ -341,13 +324,11 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     return `Tôi chưa tìm thấy sản phẩm phù hợp với "${msg}". Bạn thử tìm theo thương hiệu (Nike, Adidas, Puma...) hoặc danh mục (giày chạy bộ, thể thao...) nhé! Hoặc gọi hotline 0968456761 để được tư vấn.`;
   };
 
-  // Navigate to product detail
   const handleProductClick = (slug) => {
     navigate(`/san-pham/${slug}`);
     onClose();
   };
 
-  // Handle quick reply click
   const handleQuickReply = (text) => {
     setInputMessage(text);
     setTimeout(() => {
@@ -355,7 +336,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }, 100);
   };
 
-  // Format price
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -363,7 +343,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }).format(price);
   };
 
-  // Handle key press
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();

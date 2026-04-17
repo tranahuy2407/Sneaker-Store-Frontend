@@ -74,7 +74,11 @@ export const checkUserAuth = createAsyncThunk(
       }
       if (error.response?.status === 401) {
         try {
-          await userAPI.refreshToken();
+          const refreshRes = await userAPI.refreshToken();
+          const newToken = refreshRes.data?.data?.accessToken || refreshRes.data?.accessToken;
+          if (newToken) {
+            localStorage.setItem("accessToken", newToken);
+          }
           const retry = await userAPI.getProfile();
           return { user: retry.data.data, isAuthenticated: true };
         } catch (refreshError) {
@@ -89,7 +93,6 @@ export const checkUserAuth = createAsyncThunk(
   }
 );
 
-/* ================= REFRESH PROFILE ================= */
 export const refreshUserProfile = createAsyncThunk(
   "auth/refreshUserProfile",
   async (_, { rejectWithValue }) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import brandAPI from "@/api/brand.api";
 
 import Header from "./components/Header";
@@ -152,13 +152,13 @@ const BrandPage = () => {
                   />
 
                   <div className="absolute inset-0 flex items-center justify-center gap-3 transition-all translate-y-3 opacity-0 group-hover:opacity-100 group-hover:translate-y-0">
-                    <a
-                      href={`/san-pham/${p.slug}`}
+                    <Link
+                      to={`/san-pham/${p.slug}`}
                       onClick={() => recentlyViewedAPI.add(p.id)}
-                      className="px-4 py-2 text-sm font-semibold text-gray-800 bg-white rounded-lg shadow hover:bg-gray-100"
+                      className="px-4 py-2 text-sm font-semibold text-gray-800 bg-white rounded-lg shadow hover:bg-gray-100 text-center"
                     >
                       Tùy chọn
-                    </a>
+                    </Link>
                     <button
                       onClick={() => setQuickViewProduct(p)}
                       className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700"

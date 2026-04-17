@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaHeart } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../../context/CartProvider";
 import categoryAPI from "@/api/category.api"; 
 
@@ -59,7 +59,7 @@ const Navbar = ({ onHeightChange }) => {
         <ul className="justify-center flex-1 hidden gap-6 md:flex">
           {menuItems.map((item, i) => (
             <li key={i} className="cursor-pointer hover:text-black">
-              <a href={item.href}>{item.name}</a>
+              <Link to={item.href}>{item.name}</Link>
             </li>
           ))}
         </ul>
@@ -129,7 +129,9 @@ const Navbar = ({ onHeightChange }) => {
         <ul className="flex flex-col gap-3 px-4 py-3 bg-white border-t md:hidden">
           {menuItems.map((item, i) => (
             <li key={i} className="cursor-pointer hover:text-black">
-              <a href={item.href}>{item.name}</a>
+              <Link to={item.href} onClick={() => setOpen(false)}>
+                {item.name}
+              </Link>
             </li>
           ))}
         </ul>

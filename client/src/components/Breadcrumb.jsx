@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Breadcrumb({ items = [], className = "" }) {
   return (
@@ -11,12 +12,12 @@ export default function Breadcrumb({ items = [], className = "" }) {
           <span className="flex items-center gap-1">
             {item.icon && item.icon}
             {item.href ? (
-              <a
-                href={item.href}
+              <Link
+                to={item.href}
                 className="transition-colors hover:text-gray-700"
               >
                 {item.label}
-              </a>
+              </Link>
             ) : (
               <span
                 className={

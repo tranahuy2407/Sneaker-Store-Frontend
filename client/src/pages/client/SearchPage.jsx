@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import productAPI from "@/api/product.api";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
@@ -183,13 +183,13 @@ export default function SearchPage() {
                 />
 
                 <div className="absolute inset-0 flex items-center justify-center gap-3 transition opacity-0 group-hover:opacity-100">
-                  <a
-                    href={`/san-pham/${p.slug}`}
+                  <Link
+                    to={`/san-pham/${p.slug}`}
                     onClick={() => recentlyViewedAPI.add(p.id)}
-                    className="px-4 py-2 text-sm font-semibold text-gray-800 bg-white rounded-lg shadow"
+                    className="px-4 py-2 text-sm font-semibold text-gray-800 bg-white rounded-lg shadow text-center"
                   >
                     Tùy chọn
-                  </a>
+                  </Link>
 
                   <button
                     onClick={() => setQuickViewProduct(p)}
