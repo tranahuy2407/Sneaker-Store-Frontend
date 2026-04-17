@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { X, Send, Bot, ShoppingBag, Search, ExternalLink } from "lucide-react";
 import { productAPI } from "../../../api/product.api";
 import { categoryAPI } from "../../../api/category.api";
@@ -23,112 +23,107 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Load categories and brands on mount
+  // Chỉ load categories và brands khi chatbot mở lần đầu
+  const [dataLoaded, setDataLoaded] = useState(false);
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [catRes, brandRes] = await Promise.all([
-          categoryAPI.getAll(),
-          brandAPI.getAll()
-        ]);
-        setCategories(catRes.data.data || []);
-        setBrands(brandRes.data.data || []);
-      } catch (err) {
-        console.error("Lỗi load data:", err);
-      }
-    };
-    loadData();
-  }, []);
+    if (isOpen && !dataLoaded) {
+      const loadData = async () => {
+        try {
+          const [catRes, brandRes] = await Promise.all([
+            categoryAPI.getAll({ limit: 100 }),
+            brandAPI.getAll({ limit: 100 })
+          ]);
+          setCategories(catRes.data.data?.data || catRes.data.data || []);
+          setBrands(brandRes.data.data?.data || brandRes.data.data || []);
+          setDataLoaded(true);
+        } catch (err) {
+          // Silent fail - không cần load cũng vẫn dùng được
+        }
+      };
+      loadData();
+    }
+  }, [isOpen, dataLoaded]);
 
-  // Auto scroll to bottom
-  const scrollToBottom = () => {
+  // Auto scroll to bottom - dùng useCallback
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  // Focus input when open
+  // Focus input when open - clear timeout on unmount
   useEffect(() => {
+    let timeoutId;
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      timeoutId = setTimeout(() => inputRef.current?.focus(), 100);
     }
+    return () => clearTimeout(timeoutId);
   }, [isOpen]);
 
-  // Quick reply suggestions
-  const quickReplies = [
+  // Quick reply suggestions - useMemo để không tạo lại mỗi render
+  const quickReplies = useMemo(() => [
     "Giày Nike",
     "Giày Adidas",
     "Giày size 42",
     "Giày đang giảm giá",
     "Giày chạy bộ",
     "Giày thể thao nam",
-  ];
+  ], []);
 
-  // Search products from database
-  const searchProducts = async (query) => {
+  // Search products from database - dùng useCallback để cache function
+  const searchProducts = useCallback(async (query) => {
     try {
-      // Thử tìm với keyword (API có thể dùng 'keyword' thay vì 'search')
       const params = { 
         keyword: query,
         limit: 6,
         page: 1
       };
-      console.log("[Chatbot] Calling API with params:", params);
       const res = await productAPI.getAll(params);
-      console.log("[Chatbot] Search response:", res.data);
-      // Xử lý nhiều cấu trúc response khác nhau
-      const data = res.data.data || res.data;
-      let products = data?.products || data || [];
-      // Đảm bảo products là array
+      const responseData = res.data.data || res.data;
+      let products = responseData?.data || responseData?.products || responseData || [];
       if (!Array.isArray(products)) {
         products = [];
       }
       return products;
     } catch (err) {
-      console.error("[Chatbot] Lỗi tìm sản phẩm:", err.response?.data || err.message);
       return [];
     }
-  };
+  }, []);
 
   // Get products by category
-  const getProductsByCategory = async (slug) => {
+  const getProductsByCategory = useCallback(async (slug) => {
     try {
       const res = await categoryAPI.getCategoryProducts(slug, { limit: 6 });
-      console.log("[Chatbot] Category response:", res.data);
-      const data = res.data.data || res.data;
-      let products = data?.products || data || [];
+      const responseData = res.data.data || res.data;
+      let products = responseData?.data || responseData?.products || responseData || [];
       if (!Array.isArray(products)) {
         products = [];
       }
       return products;
     } catch (err) {
-      console.error("[Chatbot] Lỗi lấy sản phẩm theo danh mục:", err.response?.data || err.message);
       return [];
     }
-  };
+  }, []);
 
   // Get products by brand
-  const getProductsByBrand = async (slug) => {
+  const getProductsByBrand = useCallback(async (slug) => {
     try {
       const res = await brandAPI.getBrandProducts(slug, { limit: 6 });
-      console.log("[Chatbot] Brand response:", res.data);
-      const data = res.data.data || res.data;
-      let products = data?.products || data || [];
+      const responseData = res.data.data || res.data;
+      let products = responseData?.data || responseData?.products || responseData || [];
       if (!Array.isArray(products)) {
         products = [];
       }
       return products;
     } catch (err) {
-      console.error("[Chatbot] Lỗi lấy sản phẩm theo thương hiệu:", err.response?.data || err.message);
       return [];
     }
-  };
+  }, []);
 
   // Parse user intent and find matching products
-  const parseAndSearch = async (msg) => {
-    console.log("[Chatbot] Parsing message:", msg);
+  const parseAndSearch = useCallback(async (msg) => {
     const lowerMsg = msg.toLowerCase();
     let foundProducts = [];
     let searchType = "";
@@ -148,13 +143,10 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
 
     for (const [keyword, slug] of Object.entries(brandKeywords)) {
       if (lowerMsg.includes(keyword)) {
-        console.log(`[Chatbot] Matched brand: ${keyword}, slug: ${slug}`);
         foundProducts = await getProductsByBrand(slug);
-        console.log(`[Chatbot] Brand API returned:`, foundProducts.length, "products");
         
         // Nếu brand API trả về rỗng, thử fallback sang search tổng quát
         if (foundProducts.length === 0) {
-          console.log(`[Chatbot] Fallback to general search for: ${keyword}`);
           foundProducts = await searchProducts(keyword);
         }
         
@@ -182,13 +174,10 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
 
       for (const [keyword, slug] of Object.entries(categoryKeywords)) {
         if (lowerMsg.includes(keyword)) {
-          console.log(`[Chatbot] Matched category: ${keyword}, slug: ${slug}`);
           foundProducts = await getProductsByCategory(slug);
-          console.log(`[Chatbot] Category API returned:`, foundProducts.length, "products");
           
           // Nếu category API trả về rỗng, thử fallback sang search tổng quát
           if (foundProducts.length === 0) {
-            console.log(`[Chatbot] Fallback to general search for: ${keyword}`);
             foundProducts = await searchProducts(keyword);
           }
           
@@ -214,9 +203,8 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
       }
     }
 
-    console.log("[Chatbot] Search result:", { count: foundProducts.length, type: searchType, keyword: matchedKeyword });
     return { products: foundProducts, type: searchType, keyword: matchedKeyword };
-  };
+  }, [getProductsByBrand, getProductsByCategory, searchProducts]);
 
   // Handle send message
   const handleSend = async () => {
@@ -235,7 +223,6 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
 
     // Search for products based on user message
     const { products: foundProducts, type, keyword } = await parseAndSearch(inputMessage);
-    console.log("[Chatbot] Found products:", foundProducts.length, foundProducts);
 
     setTimeout(() => {
       if (foundProducts.length > 0) {
@@ -249,6 +236,8 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
             ? `Tôi tìm thấy ${foundProducts.length} sản phẩm trong danh mục "${keyword}":`
             : `Tôi tìm thấy ${foundProducts.length} sản phẩm phù hợp với "${keyword}":`,
           products: foundProducts,
+          searchType: type,        // 'brand', 'category', or 'search'
+          searchKeyword: keyword,   // Nike, giày chạy bộ, etc.
           time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, botMsg]);
@@ -284,7 +273,7 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
     }
     if (lowerMsg.includes("đơn hàng") || lowerMsg.includes("tracking") || lowerMsg.includes("theo dõi")) {
       return "Bạn có thể theo dõi đơn hàng bằng cách vào mục 'Theo dõi đơn hàng' hoặc đăng nhập vào tài khoản để xem lịch sử đơn hàng.";
-    }
+    } 
     if (lowerMsg.includes("ship") || lowerMsg.includes("vận chuyển") || lowerMsg.includes("giao hàng")) {
       return "Thời gian giao hàng: 2-3 ngày đối với nội thành HCM/HN, 3-5 ngày đối với tỉnh thành khác. Free ship cho đơn từ 500k.";
     }
@@ -439,10 +428,23 @@ const ChatbotWidget = ({ isOpen, onClose }) => {
                   <div className="flex justify-start">
                     <button
                       onClick={() => {
-                        const searchQuery = msg.text.includes("thương hiệu") 
-                          ? `brand:${msg.text.split(" ").pop()}`
-                          : msg.text.split('"')[1] || "";
-                        navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                        // Navigate based on search type
+                        if (msg.searchType === "brand") {
+                          // Convert keyword to slug (NIKE -> nike)
+                          const brandSlug = msg.searchKeyword.toLowerCase().replace(/\s+/g, "-");
+                          navigate(`/thuong-hieu/${brandSlug}`);
+                        } else if (msg.searchType === "category") {
+                          // Convert keyword to slug (giày chạy bộ -> giay-chay-bo)
+                          const categorySlug = msg.searchKeyword
+                            .toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/\s+/g, "-");
+                          navigate(`/danh-muc/${categorySlug}`);
+                        } else {
+                          // General search
+                          navigate(`/search?q=${encodeURIComponent(msg.searchKeyword)}`);
+                        }
                         onClose();
                       }}
                       className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#FF7E5F] text-[#FF7E5F] rounded-full text-xs font-medium hover:bg-[#FF7E5F] hover:text-white transition-all duration-200 shadow-sm"

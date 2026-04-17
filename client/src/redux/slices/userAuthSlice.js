@@ -69,12 +69,18 @@ export const checkUserAuth = createAsyncThunk(
       const res = await userAPI.getProfile();
       return { user: res.data.data, isAuthenticated: true };
     } catch (error) {
+      if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT" || !error.response) {
+        return rejectWithValue("Lỗi kết nối");
+      }
       if (error.response?.status === 401) {
         try {
           await userAPI.refreshToken();
           const retry = await userAPI.getProfile();
           return { user: retry.data.data, isAuthenticated: true };
-        } catch {
+        } catch (refreshError) {
+          if (refreshError.code === "ECONNABORTED" || !refreshError.response) {
+            return rejectWithValue("Lỗi kết nối");
+          }
           return rejectWithValue("Phiên đăng nhập hết hạn");
         }
       }
@@ -214,11 +220,16 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = false;
         state.checkingAuth = false;
         state.error = action.payload;
-        // Chỉ xóa localStorage nếu lỗi là 401 (không xác thực), không phải lỗi mạng
+        // Chỉ xóa localStorage nếu lỗi là 401 (không xác thực)
+        // Giữ lại nếu là lỗi kết nối để thử lại sau
         if (action.payload === "Phiên đăng nhập hết hạn" || action.payload === "Không xác thực") {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("userData");
-          console.log("[Auth] Cleared localStorage due to auth failure");
+        }
+        // Nếu lỗi kết nối, giữ nguyên localStorage để thử lại
+        if (action.payload === "Lỗi kết nối" && localStorage.getItem("accessToken")) {
+          // Giữ nguyên localStorage, có thể mạng sẽ phục hồi
+          state.isAuthenticated = true; // Giả định vẫn đăng nhập để không redirect
         }
       })
 

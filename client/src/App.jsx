@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { checkAuthStatus } from "./redux/slices/authSlice"; 
@@ -15,13 +15,20 @@ function App() {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
   const isAuthPath = ["/login", "/register"].includes(location.pathname);
+  const [minLoadingTime, setMinLoadingTime] = useState(true);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinLoadingTime(false);
+    }, 2000);
+
     dispatch(checkAuthStatus()); 
     dispatch(checkUserAuth());   
+
+    return () => clearTimeout(timer);
   }, [dispatch]);
 
-  if (adminChecking || userChecking) {
+  if ((adminChecking || userChecking) && minLoadingTime) {
     return <Loading />;
   }
 
