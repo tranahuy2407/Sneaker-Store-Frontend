@@ -11,11 +11,10 @@ import FloatingActions from "./pages/client/components/FloatingActions";
 function App() {
   const dispatch = useDispatch();
   const adminChecking = useSelector((state) => state.auth.checkingAuth);
-  const userChecking = useSelector((state) => state.userAuth.checkUserAuth);
+  const userChecking = useSelector((state) => state.userAuth.checkingAuth);
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
   const isAuthPath = ["/login", "/register"].includes(location.pathname);
-  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     dispatch(checkAuthStatus()); 

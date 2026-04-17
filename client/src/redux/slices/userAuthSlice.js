@@ -101,12 +101,21 @@ export const refreshUserProfile = createAsyncThunk(
 /* ================= SLICE ================= */
 // Kiểm tra localStorage để khôi phục trạng thái auth trên mobile
 const storedToken = localStorage.getItem("accessToken");
-const storedUser = localStorage.getItem("userData");
+let storedUser = null;
+try {
+  const userData = localStorage.getItem("userData");
+  if (userData && userData !== "undefined") {
+    storedUser = JSON.parse(userData);
+  }
+} catch (e) {
+  console.error("Lỗi parse userData từ localStorage:", e);
+  localStorage.removeItem("userData");
+}
 
 const initialState = {
-  user: storedUser ? JSON.parse(storedUser) : null,
-  isAuthenticated: !!storedToken,
-  profileLoaded: !!storedToken,
+  user: storedUser,
+  isAuthenticated: !!storedToken && !!storedUser,
+  profileLoaded: !!storedUser,
   loading: false,
   error: null,
   checkingAuth: !!storedToken, // Chỉ checking nếu có token
@@ -135,7 +144,12 @@ const userAuthSlice = createSlice({
         // Lưu token và user vào localStorage cho mobile
         if (action.payload.user?.accessToken) {
           localStorage.setItem("accessToken", action.payload.user.accessToken);
+          console.log("[Auth] Saved accessToken to localStorage");
+        }
+        // Luôn lưu userData để khôi phục sau reload
+        if (action.payload.user) {
           localStorage.setItem("userData", JSON.stringify(action.payload.user));
+          console.log("[Auth] Saved userData to localStorage");
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -156,7 +170,12 @@ const userAuthSlice = createSlice({
         // Lưu token và user vào localStorage cho mobile
         if (action.payload.user?.accessToken) {
           localStorage.setItem("accessToken", action.payload.user.accessToken);
+          console.log("[Auth] Saved accessToken to localStorage");
+        }
+        // Luôn lưu userData để khôi phục sau reload
+        if (action.payload.user) {
           localStorage.setItem("userData", JSON.stringify(action.payload.user));
+          console.log("[Auth] Saved userData to localStorage");
         }
       })
       .addCase(googleLogin.rejected, (state, action) => {
@@ -174,23 +193,33 @@ const userAuthSlice = createSlice({
       })
 
       /* CHECK AUTH */
+      .addCase(checkUserAuth.pending, (state) => {
+        state.checkingAuth = true;
+        state.error = null;
+      })
       .addCase(checkUserAuth.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.checkingAuth = false;
         state.profileLoaded = true;
+        state.error = null;
         // Cập nhật token và user mới từ refresh
         if (action.payload.user?.accessToken) {
           localStorage.setItem("accessToken", action.payload.user.accessToken);
         }
         localStorage.setItem("userData", JSON.stringify(action.payload.user));
       })
-      .addCase(checkUserAuth.rejected, (state) => {
+      .addCase(checkUserAuth.rejected, (state, action) => {
         state.user = null;
         state.isAuthenticated = false;
         state.checkingAuth = false;
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("userData");
+        state.error = action.payload;
+        // Chỉ xóa localStorage nếu lỗi là 401 (không xác thực), không phải lỗi mạng
+        if (action.payload === "Phiên đăng nhập hết hạn" || action.payload === "Không xác thực") {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("userData");
+          console.log("[Auth] Cleared localStorage due to auth failure");
+        }
       })
 
       /* REFRESH PROFILE */
