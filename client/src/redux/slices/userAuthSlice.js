@@ -183,6 +183,7 @@ const userAuthSlice = createSlice({
         state.isAuthenticated = false;
         state.checkingAuth = false;
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         localStorage.removeItem("userData");
       })
 
@@ -210,6 +211,7 @@ const userAuthSlice = createSlice({
           state.user = null;
           state.isAuthenticated = false;
           localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
           localStorage.removeItem("userData");
         } else {
           // Các lỗi khác (mạng, server 500) -> Giữ nguyên trạng thái để thử lại sau

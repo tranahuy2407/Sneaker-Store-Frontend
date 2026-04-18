@@ -26,22 +26,24 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Tự động lưu token nếu có trong response
 apiClient.interceptors.response.use(
   (response) => {
-    // Nếu server trả về accessToken trong body (Login hoặc Refresh Token)
     const token = response.data?.data?.accessToken || response.data?.accessToken;
+    const refreshToken = response.data?.data?.refreshToken || response.data?.refreshToken;
+    
     if (token) {
       localStorage.setItem("accessToken", token);
-      // Nếu có thông tin người dùng đi kèm, cũng cập nhật luôn
-      if (response.data?.data?.user || response.data?.user) {
-        localStorage.setItem("userData", JSON.stringify(response.data?.data?.user || response.data?.user));
-      }
+    }
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
+
+    if (response.data?.data?.user || response.data?.user) {
+      localStorage.setItem("userData", JSON.stringify(response.data?.data?.user || response.data?.user));
     }
     return response;
   },
   (error) => {
-    // Log lỗi chi tiết để debug trên mobile
     if (error.response) {
       console.warn(`[API Error ${error.response.status}]`, error.response.data);
     } else if (error.request) {

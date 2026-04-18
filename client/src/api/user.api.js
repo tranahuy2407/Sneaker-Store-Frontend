@@ -7,7 +7,10 @@ export const userAPI = {
   getProfile: () => apiClient.get("/user/profile"),
   updateProfile: (data) => apiClient.put("/user/profile", data),
   addAddress: (data) => apiClient.post("/user/address", data),
-  refreshToken: () => apiClient.post("/user/refresh-token"),
+  refreshToken: () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    return apiClient.post("/user/refresh-token", { refreshToken });
+  },
   forgotPassword: (email) =>
     apiClient.post("/user/forgot-password", { email }),
   resetPassword: (token, newPassword) =>
