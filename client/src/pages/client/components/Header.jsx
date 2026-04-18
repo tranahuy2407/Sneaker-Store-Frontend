@@ -12,7 +12,7 @@ const Header = ({ onHeightChange }) => {
   const { isAuthenticated, user } = useSelector((state) => state.userAuth);
 
   useEffect(() => {
-    if (headerRef.current) {
+    if (headerRef.current && typeof onHeightChange === "function") {
       onHeightChange(headerRef.current.offsetHeight);
     }
   }, [headerRef, onHeightChange]);

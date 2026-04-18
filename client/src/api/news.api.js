@@ -18,4 +18,5 @@ const newsAPI = {
   delete: (id) => apiClient.delete(`/admin/news/${id}`),
 };
 
+export { newsAPI };
 export default newsAPI;

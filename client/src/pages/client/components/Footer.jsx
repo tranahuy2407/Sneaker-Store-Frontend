@@ -34,33 +34,43 @@ const Footer = () => {
         ))}
       </div>
 
-      <div className="container grid grid-cols-1 gap-10 px-6 py-10 mx-auto text-white bg-black sm:grid-cols-2 md:grid-cols-4">
+      <div className="container grid grid-cols-1 gap-10 px-6 py-10 mx-auto text-white bg-black sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <h3 className="mb-4 font-semibold">VỀ SNEAKER STORE</h3>
           <ul className="space-y-2 text-gray-300">
-            <li className="cursor-pointer hover:text-white">Trang chủ</li>
-            <li className="cursor-pointer hover:text-white">Giới thiệu</li>
-            <li className="cursor-pointer hover:text-white">Sản phẩm</li>
+            <li><Link to="/" className="hover:text-white transition-colors">Trang chủ</Link></li>
+            <li><Link to="/gioi-thieu" className="hover:text-white transition-colors">Giới thiệu</Link></li>
+            <li><Link to="/san-pham" className="hover:text-white transition-colors">Sản phẩm</Link></li>
+            <li><Link to="/tin-tuc" className="hover:text-white transition-colors">Tin tức</Link></li>
           </ul>
         </div>
 
         <div>
           <h3 className="mb-4 font-semibold">Chính sách</h3>
           <ul className="space-y-2 text-gray-300">
-            <li className="cursor-pointer hover:text-white">Chính sách bảo mật</li>
-            <li className="cursor-pointer hover:text-white">Chính sách vận chuyển</li>
-            <li className="cursor-pointer hover:text-white">Chính sách đổi trả</li>
-            <li className="cursor-pointer hover:text-white">Quy định sử dụng</li>
+            <li><Link to="/chinh-sach/bao-mat" className="hover:text-white transition-colors">Chính sách bảo mật</Link></li>
+            <li><Link to="/chinh-sach/van-chuyen" className="hover:text-white transition-colors">Chính sách vận chuyển</Link></li>
+            <li><Link to="/chinh-sach/doi-tra" className="hover:text-white transition-colors">Chính sách đổi trả</Link></li>
+            <li><Link to="/chinh-sach/quy-dinh" className="hover:text-white transition-colors">Quy định sử dụng</Link></li>
           </ul>
         </div>
 
         <div>
           <h3 className="mb-4 font-semibold">Hỗ trợ khách hàng</h3>
           <ul className="space-y-2 text-gray-300">
-            <li className="cursor-pointer hover:text-white">Tìm kiếm</li>
-            <li className="cursor-pointer hover:text-white">Đăng nhập</li>
-            <li className="cursor-pointer hover:text-white">Đăng ký</li>
-            <li className="cursor-pointer hover:text-white">Giỏ hàng</li>
+            <li><Link to="/tim-kiem" className="hover:text-white transition-colors">Tìm kiếm</Link></li>
+            <li><Link to="/dang-nhap" className="hover:text-white transition-colors">Đăng nhập</Link></li>
+            <li><Link to="/dang-ky" className="hover:text-white transition-colors">Đăng ký</Link></li>
+            <li><Link to="/gio-hang" className="hover:text-white transition-colors">Giỏ hàng</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="mb-4 font-semibold">Liên hệ</h3>
+          <ul className="space-y-2 text-gray-300">
+            <li><Link to="/lien-he" className="hover:text-white transition-colors">Thông tin liên hệ</Link></li>
+            <li className="flex items-center gap-2"><span className="text-sm">Hotline: 0968 456 761</span></li>
+            <li className="flex items-center gap-2"><span className="text-sm">Email: info@sneakerstore.vn</span></li>
           </ul>
         </div>
 

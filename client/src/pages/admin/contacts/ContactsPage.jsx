@@ -15,6 +15,9 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [replyLoading, setReplyLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchContacts = async () => {
@@ -53,6 +56,25 @@ export default function ContactsPage() {
       if (selected?.id === id) setSelected((prev) => ({ ...prev, status }));
     } catch {
       toast.error("Cập nhật thất bại");
+    }
+  };
+
+  const handleReply = async () => {
+    if (!replyText.trim()) return toast.warn("Vui lòng nhập nội dung phản hồi");
+    try {
+      setReplyLoading(true);
+      await contactAPI.reply(selected.id, replyText);
+      toast.success("Đã gửi phản hồi và mail cho khách hàng");
+      setContacts((prev) =>
+        prev.map((c) => (c.id === selected.id ? { ...c, status: "replied" } : c))
+      );
+      setSelected((prev) => ({ ...prev, status: "replied" }));
+      setShowReplyModal(false);
+      setReplyText("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Gửi phản hồi thất bại");
+    } finally {
+      setReplyLoading(false);
     }
   };
 
@@ -165,7 +187,7 @@ export default function ContactsPage() {
 
         {/* Chi tiết liên hệ */}
         {selected && (
-          <div className="w-full lg:w-96 flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4 self-start lg:sticky lg:top-6">
+          <div className="w-full lg:w-96 flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4 self-start lg:sticky lg:top-6 animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-800 text-lg">Chi tiết liên hệ</h3>
               <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
@@ -196,7 +218,7 @@ export default function ContactsPage() {
 
             <div>
               <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Nội dung</div>
-              <div className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 whitespace-pre-wrap leading-relaxed">
+              <div className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 whitespace-pre-wrap leading-relaxed max-h-[200px] overflow-y-auto">
                 {selected.message}
               </div>
             </div>
@@ -224,16 +246,96 @@ export default function ContactsPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => handleDelete(selected.id)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-            >
-              <Trash2 size={14} />
-              Xóa liên hệ này
-            </button>
+            {/* Action Buttons */}
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                onClick={() => setShowReplyModal(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-all shadow-sm group"
+              >
+                <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
+                Trả lời khách hàng
+              </button>
+
+              <button
+                onClick={() => handleDelete(selected.id)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <Trash2 size={14} />
+                Xóa liên hệ này
+              </button>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Reply Modal */}
+      {showReplyModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+            onClick={() => !replyLoading && setShowReplyModal(false)} 
+          />
+          <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Trả lời khách hàng</h3>
+                <p className="text-sm text-gray-500">Đến: {selected.email}</p>
+              </div>
+              <button 
+                onClick={() => setShowReplyModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4 text-sm border border-gray-100">
+                <span className="font-bold text-gray-700 block mb-1">Nội dung khách gửi:</span>
+                <p className="text-gray-600 italic">"{selected.message}"</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Nội dung phản hồi (Sẽ được gửi qua mail):</label>
+                <textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Nhập nội dung bạn muốn phản hồi cho khách hàng..."
+                  rows={6}
+                  className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all resize-none text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-3">
+              <button
+                disabled={replyLoading}
+                onClick={() => setShowReplyModal(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                disabled={replyLoading}
+                onClick={handleReply}
+                className="flex-[2] flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-all disabled:opacity-50"
+              >
+                {replyLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    Đang gửi mail...
+                  </>
+                ) : (
+                  <>
+                    <Mail size={16} />
+                    Gửi phản hồi ngay
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

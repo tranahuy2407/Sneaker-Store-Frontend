@@ -61,6 +61,13 @@ import ContactsPage from "@/pages/admin/contacts/ContactsPage.jsx";
 import AddContactPage from "@/pages/admin/contacts/AddContactPage.jsx";
 import StoreInfoPage from "@/pages/admin/store/StoreInfoPage.jsx";
 
+// Client static pages
+import AboutPage from "@/pages/client/AboutPage.jsx";
+import NewsPageClient from "@/pages/client/NewsPage.jsx";
+import NewsDetail from "@/pages/client/NewsDetail.jsx";
+import ContactPage from "@/pages/client/ContactPage.jsx";
+import PolicyPage from "@/pages/client/PolicyPage.jsx";
+
 export const routes = [
   //Client
   {
@@ -151,6 +158,46 @@ export const routes = [
   {
     path: "/reset-password",
     element: <ResetPassword />,
+  },
+  {
+    path: "/gioi-thieu",
+    element: <AboutPage />,
+  },
+  {
+    path: "/tin-tuc",
+    element: <NewsPageClient />,
+  },
+  {
+    path: "/tin-tuc/:slug",
+    element: <NewsDetail />,
+  },
+  {
+    path: "/lien-he",
+    element: <ContactPage />,
+  },
+  {
+    path: "/chinh-sach/:slug",
+    element: <PolicyPage />,
+  },
+  {
+    path: "/san-pham",
+    element: <SearchPage />,
+  },
+  {
+    path: "/tim-kiem",
+    element: <SearchPage />,
+  },
+  {
+    path: "/dang-nhap",
+    element: <Login />,
+  },
+  {
+    path: "/dang-ky",
+    element: <Register />,
+  },
+  {
+    path: "/gio-hang",
+    element: <CartPage />,
   },
 
   // Admin Dashboard Routes
