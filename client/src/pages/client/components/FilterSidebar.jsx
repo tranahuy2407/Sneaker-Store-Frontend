@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { SlidersHorizontal, X, ChevronDown, Check } from "lucide-react";
-import { sortOptions, buildProductFilters } from "@/helpers/productFilter";
+import { SlidersHorizontal, X, ChevronDown, Check, Tag, DollarSign, RotateCcw } from "lucide-react";
 
 export default function FilterSidebar({ brands = [], categories = [], onClose }) {
   const [params, setParams] = useSearchParams();
@@ -9,128 +8,150 @@ export default function FilterSidebar({ brands = [], categories = [], onClose })
   /* STATES */
   const [price, setPrice] = useState({
     min: Number(params.get("minPrice")) || 0,
-    max: Number(params.get("maxPrice")) || 50000000,
+    max: Number(params.get("maxPrice")) || 10000000,
   });
 
-  const [brandId, setBrandId] = useState(params.get("brandId") || "");
-  const [categoryId, setCategoryId] = useState(params.get("categoryId") || "");
+  const [brandIds, setBrandIds] = useState(params.get("brandIds") || "");
+  const [categoryIds, setCategoryIds] = useState(params.get("categoryIds") || "");
   const [sort, setSort] = useState(params.get("sort") || "");
+
+  /* Toggles multi-select values */
+  const toggleId = (current, id) => {
+    const list = current ? current.split(",") : [];
+    const sId = String(id);
+    if (list.includes(sId)) {
+      const filtered = list.filter(item => item !== sId);
+      return filtered.join(",");
+    } else {
+      return [...list, sId].join(",");
+    }
+  };
 
   /* APPLY */
   const applyFilter = () => {
-    const filterParams = buildProductFilters({
-      search: params.get("q") || "",
-      minPrice: price.min,
-      maxPrice: price.max,
-      brandId,
-      categoryId,
-      sort,
-      page: 1,
-      limit: params.get("limit") || 20,
-    });
-
-    if (filterParams.status) delete filterParams.status;
-
-    setParams(filterParams);
-
+    const newParams = new URLSearchParams(params);
+    if (price.min > 0) newParams.set("minPrice", price.min); else newParams.delete("minPrice");
+    if (price.max < 10000000) newParams.set("maxPrice", price.max); else newParams.delete("maxPrice");
+    if (brandIds) newParams.set("brandIds", brandIds); else newParams.delete("brandIds");
+    if (categoryIds) newParams.set("categoryIds", categoryIds); else newParams.delete("categoryIds");
+    if (sort) newParams.set("sort", sort); else newParams.delete("sort");
+    newParams.set("page", "1");
+    setParams(newParams);
+    if (onClose) onClose();
   };
 
   /* RESET */
   const resetFilter = () => {
-    setPrice({ min: 0, max: 50000000 });
-    setBrandId("");
-    setCategoryId("");
+    setPrice({ min: 0, max: 10000000 });
+    setBrandIds("");
+    setCategoryIds("");
     setSort("");
-
-    setParams({
-      page: 1,
-      limit: 20,
-      q: params.get("q") || "",
-    });
+    const newParams = new URLSearchParams(params);
+    newParams.delete("minPrice");
+    newParams.delete("maxPrice");
+    newParams.delete("brandIds");
+    newParams.delete("categoryIds");
+    newParams.delete("sort");
+    newParams.set("page", "1");
+    setParams(newParams);
   };
 
   return (
-    <div className="w-full p-6 space-y-6 bg-white border shadow-xl max-w-none rounded-3xl h-fit animate-slideUp">
+    <div className="w-full space-y-6 bg-white shrink-0 animate-fadeIn">
+      {/* HEADER - Only visible if onClose is provided (likely mobile modal) */}
+      {onClose && (
+        <div className="flex items-center justify-between pb-4 border-b">
+          <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900">
+            <SlidersHorizontal size={22} className="text-orange-500" />
+            Bộ lọc sản phẩm
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      )}
 
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900">
-          <SlidersHorizontal size={22} />
-          Bộ lọc sản phẩm
-        </h2>
+      {!onClose && (
+        <div className="flex items-center justify-between pb-2">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800 uppercase tracking-tight">
+             Bộ lọc
+          </h2>
+          <button
+            onClick={resetFilter}
+            className="flex items-center gap-1 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors uppercase"
+          >
+            <RotateCcw size={12} /> Làm mới
+          </button>
+        </div>
+      )}
 
-        <button
-          onClick={resetFilter}
-          className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-red-500 transition rounded-xl bg-red-50 hover:bg-red-100"
-        >
-          <X size={14} /> Xóa
-        </button>
+      {/* CATEGORIES */}
+      <div className="space-y-3">
+        <p className="flex items-center gap-2 font-bold text-gray-900 text-sm uppercase">
+          <Tag size={16} className="text-orange-500" /> Danh mục
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {categories.map((c) => {
+            const isSelected = categoryIds.split(",").includes(String(c.id));
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCategoryIds(prev => toggleId(prev, c.id))}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200
+                  ${isSelected 
+                    ? "bg-orange-500 text-white border-orange-500 shadow-orange-200 shadow-lg" 
+                    : "bg-gray-50 text-gray-600 border-gray-100 hover:border-orange-300 hover:text-orange-500"}`}
+              >
+                {c.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* BRANDS */}
+      <div className="space-y-3">
+        <p className="flex items-center gap-2 font-bold text-gray-900 text-sm uppercase">
+          <SlidersHorizontal size={16} className="text-orange-500" /> Thương hiệu
+        </p>
+        <div className="max-h-48 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
+          {brands.map((b) => {
+            const isSelected = brandIds.split(",").includes(String(b.id));
+            return (
+              <label
+                key={b.id}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 group
+                  ${isSelected ? "bg-orange-50" : "hover:bg-gray-50"}`}
+                onClick={() => setBrandIds(prev => toggleId(prev, b.id))}
+              >
+                <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all
+                  ${isSelected ? "bg-orange-500 border-orange-500" : "bg-white border-gray-300 group-hover:border-orange-400"}`}>
+                  {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
+                </div>
+                <span className={`text-sm ${isSelected ? "text-orange-600 font-bold" : "text-gray-700"}`}>
+                  {b.name}
+                </span>
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       {/* PRICE RANGE */}
-      <PriceRange price={price} setPrice={setPrice} />
-
-     <div className="flex w-full gap-6">
-      <div className="flex-1">
-        <Dropdown
-          title="Thương hiệu"
-          selected={brandId ? brands.find((b) => b.id == brandId)?.name : "Chọn thương hiệu"}
-        >
-          {brands.map((b) => (
-            <label
-              key={b.id}
-              onClick={() => setBrandId(b.id)}
-              className={`flex items-center justify-between px-4 py-2 rounded-xl cursor-pointer transition 
-                ${brandId == b.id ? "bg-blue-50 text-blue-600" : "text-gray-800 hover:bg-gray-100"}`}
-            >
-              <span>{b.name}</span>
-              {brandId == b.id && <Check size={18} className="text-blue-600" />}
-            </label>
-          ))}
-        </Dropdown>
-      </div>
-
-      <div className="flex-1">
-        <Dropdown
-          title="Danh mục"
-          selected={categoryId ? categories.find((c) => c.id == categoryId)?.name : "Chọn danh mục"}
-        >
-          {categories.map((c) => (
-            <label
-              key={c.id}
-              onClick={() => setCategoryId(c.id)}
-              className={`flex items-center justify-between px-4 py-2 rounded-xl cursor-pointer transition 
-                ${categoryId == c.id ? "bg-blue-50 text-blue-600" : "text-gray-800 hover:bg-gray-100"}`}
-            >
-              <span>{c.name}</span>
-              {categoryId == c.id && <Check size={18} className="text-blue-600" />}
-            </label>
-          ))}
-        </Dropdown>
-      </div>
-        </div>
-
-
-      {/* SORT */}
-      <div>
-        <p className="mb-2 font-semibold text-gray-900">Sắp xếp</p>
-        <select
-          className="w-full px-4 py-3 text-gray-700 transition border shadow-sm bg-gray-50 rounded-2xl hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-        >
-          {sortOptions.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+      <div className="space-y-3">
+        <p className="flex items-center gap-2 font-bold text-gray-900 text-sm uppercase">
+          <DollarSign size={16} className="text-orange-500" /> Khoảng giá
+        </p>
+        <PriceRange price={price} setPrice={setPrice} />
       </div>
 
       {/* APPLY BUTTON */}
       <button
         onClick={applyFilter}
-        className="w-full py-3 font-bold text-white transition-all duration-200 bg-blue-600 shadow-lg rounded-2xl hover:bg-blue-700 hover:scale-[1.02]"
+        className="w-full py-4 font-bold text-white transition-all duration-300 bg-gradient-to-r from-orange-500 to-orange-600 shadow-xl shadow-orange-100 rounded-2xl hover:shadow-orange-200 hover:-translate-y-1 active:scale-95"
       >
         Áp dụng bộ lọc
       </button>
@@ -138,123 +159,85 @@ export default function FilterSidebar({ brands = [], categories = [], onClose })
   );
 }
 
-function Dropdown({ title, selected, children }) {
-  return (
-    <div>
-      <p className="mb-2 font-semibold text-gray-900">{title}</p>
-
-      <details className="overflow-hidden transition border shadow-sm bg-gray-50 rounded-2xl group">
-        <summary className="flex items-center justify-between px-4 py-3 text-gray-800 transition cursor-pointer hover:bg-gray-100">
-          <span>{selected}</span>
-          <ChevronDown size={18} className="transition group-open:rotate-180" />
-        </summary>
-
-        <div className="p-2 space-y-1 overflow-y-auto bg-white max-h-56 animate-fadeIn">
-          {children}
-        </div>
-      </details>
-    </div>
-  );
-}
-
 function PriceRange({ price, setPrice }) {
+  const maxLimit = 10000000;
   const format = (v) => v.toLocaleString("vi-VN") + "₫";
 
+  const handleMinChange = (e) => {
+    const val = Number(e.target.value);
+    setPrice(p => ({ ...p, min: Math.min(val, p.max - 100000) }));
+  };
+
+  const handleMaxChange = (e) => {
+    const val = Number(e.target.value);
+    setPrice(p => ({ ...p, max: Math.max(val, p.min + 100000) }));
+  };
+
   return (
-    <div className="p-4 overflow-hidden border shadow-sm bg-gray-50 rounded-2xl">
-      <p className="mb-3 text-lg font-semibold text-gray-900">Khoảng giá</p>
-
-      {/* INPUT BOXES */}
-      <div className="flex items-center gap-3 mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
         <div className="flex-1">
-          <label className="text-xs font-medium text-gray-600">Từ</label>
-          <input
-            type="number"
-            value={price.min}
-            min={0}
-            max={50000000}
-            onChange={(e) =>
-              setPrice((p) => ({
-                ...p,
-                min: Math.min(Number(e.target.value), p.max - 100000),
-              }))
-            }
-            className="w-full px-3 py-2 mt-1 text-sm bg-white border shadow-sm rounded-xl focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="relative">
+            <input
+              type="number"
+              value={price.min}
+              onChange={handleMinChange}
+              className="w-full pl-3 pr-2 py-2.5 text-sm bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">TỪ</span>
+          </div>
         </div>
-
+        <div className="text-gray-300">—</div>
         <div className="flex-1">
-          <label className="text-xs font-medium text-gray-600">Đến</label>
-          <input
-            type="number"
-            value={price.max}
-            min={0}
-            max={50000000}
-            onChange={(e) =>
-              setPrice((p) => ({
-                ...p,
-                max: Math.max(Number(e.target.value), p.min + 100000),
-              }))
-            }
-            className="w-full px-3 py-2 mt-1 text-sm bg-white border shadow-sm rounded-xl focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="relative">
+            <input
+              type="number"
+              value={price.max}
+              onChange={handleMaxChange}
+              className="w-full pl-3 pr-2 py-2.5 text-sm bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">ĐẾN</span>
+          </div>
         </div>
       </div>
 
-      {/* RANGE SLIDER */}
-      <div className="relative h-16 overflow-hidden">
-        {/* Track */}
-        <div className="absolute w-full h-2 bg-gray-200 rounded-full top-7"></div>
-
-        {/* Active Range */}
+      <div className="relative h-6 pt-2">
+        <div className="absolute w-full h-1.5 bg-gray-100 rounded-full top-3"></div>
         <div
-          className="absolute h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 top-7"
+          className="absolute h-1.5 rounded-full bg-orange-500 top-3"
           style={{
-            left: `${(price.min / 50000000) * 100}%`,
-            right: `${100 - (price.max / 50000000) * 100}%`,
+            left: `${(price.min / maxLimit) * 100}%`,
+            right: `${100 - (price.max / maxLimit) * 100}%`,
           }}
         ></div>
-
-        {/* MIN */}
         <input
           type="range"
           min={0}
-          max={50000000}
+          max={maxLimit}
           value={price.min}
           step={100000}
-          onChange={(e) =>
-            setPrice((p) => ({
-              ...p,
-              min: Math.min(Number(e.target.value), p.max - 100000),
-            }))
-          }
-          className="absolute w-full h-8 bg-transparent pointer-events-auto top-4 range-thumb"
+          onChange={handleMinChange}
+          className="absolute w-full h-6 bg-transparent pointer-events-auto top-0 accent-orange-600 appearance-none cursor-pointer"
+          style={{ zIndex: price.min > maxLimit / 2 ? 5 : 4 }}
         />
-
-        {/* MAX */}
         <input
           type="range"
           min={0}
-          max={50000000}
+          max={maxLimit}
           value={price.max}
           step={100000}
-          onChange={(e) =>
-            setPrice((p) => ({
-              ...p,
-              max: Math.max(Number(e.target.value), p.min + 100000),
-            }))
-          }
-          className="absolute w-full h-8 bg-transparent pointer-events-auto top-4 range-thumb"
+          onChange={handleMaxChange}
+          className="absolute w-full h-6 bg-transparent pointer-events-auto top-0 accent-orange-600 appearance-none cursor-pointer"
         />
       </div>
 
-      {/* DISPLAY RANGE */}
-      <div className="flex justify-between mt-3 text-sm font-semibold text-gray-700">
+      <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
         <span>{format(price.min)}</span>
         <span>{format(price.max)}</span>
       </div>
     </div>
   );
 }
+
 
 

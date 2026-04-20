@@ -37,7 +37,7 @@ function App() {
     {!isAdminPath && !isAuthPath && (
       <>
         <CartPopup />
-        <FloatingActions />
+        {location.pathname === "/" && <FloatingActions />}
       </>
     )}
     <Routes>
