@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import defaultImage from "../../../assets/default.jpg";
-import { FaHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import favoriteAPI from "../../../api/favorite.api";
-import recentlyViewedAPI from "../../../api/recentlyViewed.api";
 import { getImageUrl, getSrcSet } from "../../../helpers/imageSrcSet";
 import SuccessNotification from "../../../components/SuccessNotification";
 import WarningNotification from "../../../components/WarningNotification";
+import SkeletonCard, { SkeletonBanner, SkeletonTitle } from "../../../components/SkeletonCard";
 
-const BrandSection = ({ title, banner, products, slug }) => {
+const BrandSection = ({ title, banner, products, slug, isLoading = false }) => {
   const [favorites, setFavorites] = useState(new Set());
   const [notif, setNotif] = useState({ show: false, type: '', message: '' });
+  const [hoveredImage, setHoveredImage] = useState(null);
   const { isAuthenticated } = useSelector((state) => state.userAuth);
 
   useEffect(() => {
@@ -69,74 +69,100 @@ const BrandSection = ({ title, banner, products, slug }) => {
 
 return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
   {/* Tiêu đề */}
-  <div className="mb-10 text-center">
-    <Link to={slug ? `/thuong-hieu/${slug}` : "#"} className={slug ? "hover:opacity-80 transition-opacity" : "pointer-events-none"}>
-      <h2 className="relative inline-block pb-4 text-2xl font-bold md:text-3xl uppercase tracking-wider">
-        {title}
-        <span className="absolute bottom-0 w-16 h-1 -translate-x-1/2 bg-blue-400 rounded left-1/2"></span>
-      </h2>
-    </Link>
-  </div>
+  {isLoading ? (
+    <SkeletonTitle />
+  ) : (
+    <div className="mb-10 text-center">
+      <Link to={slug ? `/thuong-hieu/${slug}` : "#"} className={slug ? "hover:opacity-80 transition-opacity" : "pointer-events-none"}>
+        <h2 className="relative inline-block pb-4 text-2xl font-bold md:text-3xl uppercase tracking-wider">
+          {title}
+          <span className="absolute bottom-0 w-16 h-1 -translate-x-1/2 bg-blue-400 rounded left-1/2"></span>
+        </h2>
+      </Link>
+    </div>
+  )}
 
   {/* Banner */}
-  <div className="w-full mb-10 overflow-hidden rounded-xl shadow-lg group">
-    <Link to={slug ? `/thuong-hieu/${slug}` : "#"}>
-      <img
-        src={getImageUrl(banner)}
-        srcSet={getSrcSet(banner)}
-        sizes="(max-width: 1280px) 100vw, 1280px"
-        alt={title}
-        className="w-full transition-transform duration-700 group-hover:scale-105"
-      />
-    </Link>
-  </div>
+  {isLoading ? (
+    <SkeletonBanner />
+  ) : (
+    <div className="w-full mb-10 overflow-hidden rounded-xl shadow-lg group">
+      <Link to={slug ? `/thuong-hieu/${slug}` : "#"}>
+        <img
+          src={getImageUrl(banner)}
+          srcSet={getSrcSet(banner)}
+          sizes="(max-width: 1280px) 100vw, 1280px"
+          alt={title}
+          className="w-full transition-transform duration-700 group-hover:scale-105"
+        />
+      </Link>
+    </div>
+  )}
 
   {/* Danh sách sản phẩm */}
   <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-    {products.map((item, i) => (
-      <div key={i} className="text-center group">
+    {isLoading ? (
+      <SkeletonCard count={5} />
+    ) : (
+      products.map((item, i) => (
+        <div key={i} className="text-center group">
 
-        {/* Product card */}
-        <div className="relative mb-3 overflow-hidden rounded-md">
+          {/* Product card */}
+          <div className="relative mb-3 overflow-hidden rounded-md">
 
-          {/* Badge giảm giá - góc trái */}
-          {console.log('Discount:', item.discount, 'for', item.name)}
-          {item.discount > 0 ? (
-            <span className="absolute z-30 px-2.5 py-1.5 text-xs font-bold text-white bg-red-500 rounded-lg left-2 top-2 shadow-md border border-red-600">
-              -{item.discount}%
-            </span>
-          ) : null}
+            {/* Badge giảm giá - góc trái */}
+            {item.discount > 0 ? (
+              <span className="absolute z-30 px-2.5 py-1.5 text-xs font-bold text-white bg-red-500 rounded-lg left-2 top-2 shadow-md border border-red-600">
+                -{item.discount}%
+              </span>
+            ) : null}
 
-          {/* Image */}
-          <div className="relative aspect-square overflow-hidden rounded-md bg-gray-50 flex items-center justify-center">
-            {(() => {
-              const imgSrc = item.images?.length > 0 ? item.images.find(img => img.isDefault)?.url || item.images[0]?.url : defaultImage;
-              return (
-                <img
-                  src={getImageUrl(imgSrc)}
-                  srcSet={getSrcSet(imgSrc)}
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                  alt={item.name}
-                  className="object-cover w-full h-full transition duration-300 group-hover:brightness-75 group-hover:scale-105"
-                />
-              );
-            })()}
+            {/* Image with zoom effect */}
+            <div 
+              className="relative aspect-square overflow-hidden rounded-md bg-gray-50 flex items-center justify-center cursor-pointer"
+              onMouseEnter={() => setHoveredImage(item.id)}
+              onMouseLeave={() => setHoveredImage(null)}
+            >
+              {(() => {
+                const imgSrc = item.images?.length > 0 ? item.images.find(img => img.isDefault)?.url || item.images[0]?.url : defaultImage;
+                return (
+                  <Link to={`/san-pham/${item.slug}`} onClick={() => recentlyViewedAPI.add(item.id)}>
+                    <img
+                      src={getImageUrl(imgSrc)}
+                      srcSet={getSrcSet(imgSrc)}
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                      alt={item.name}
+                      className={`object-cover w-full h-full transition-all duration-500 ${
+                        hoveredImage === item.id 
+                          ? 'scale-150 brightness-100' 
+                          : 'scale-100 group-hover:brightness-75'
+                      }`}
+                    />
+                  </Link>
+                );
+              })()}
+            </div>
+
+            {/* Nút yêu thích - góc phải trên */}
+            <button
+              onClick={(e) => handleFavorite(e, item.id)}
+              className={`absolute right-2 top-2 z-20 w-9 h-9 flex items-center justify-center bg-white rounded-full shadow-lg border-2 transition-all hover:scale-110 active:scale-95 ${favorites.has(item.id) ? 'border-red-500 text-red-500' : 'border-gray-400 text-gray-400 hover:border-red-500 hover:text-red-500'}`}
+              title="Thêm vào yêu thích"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill={favorites.has(item.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
           </div>
 
-          {/* Nút yêu thích - góc phải trên */}
-          <button
-            onClick={(e) => handleFavorite(e, item.id)}
-            className={`absolute right-2 top-2 z-20 w-9 h-9 flex items-center justify-center bg-white rounded-full shadow-lg border-2 transition-all hover:scale-110 active:scale-95 ${favorites.has(item.id) ? 'border-red-500 text-red-500' : 'border-gray-400 text-gray-400 hover:border-red-500 hover:text-red-500'}`}
-            title="Thêm vào yêu thích"
+          {/* Product name with link */}
+          <Link 
+            to={`/san-pham/${item.slug}`}
+            onClick={() => recentlyViewedAPI.add(item.id)}
+            className="block h-10 mt-2 text-sm font-semibold line-clamp-2 overflow-hidden hover:text-blue-600 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill={favorites.has(item.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-          </button>
-        </div>
-
-        {/* Product name */}
-        <p className="h-10 mt-2 text-sm font-semibold line-clamp-2 overflow-hidden">{item.name}</p>
+            {item.name}
+          </Link>
 
         {/* Price */}
         <div className="font-bold text-red-600">{item.discountPrice.toLocaleString()}₫</div>
@@ -147,7 +173,7 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
           </div>
         )}
       </div>
-    ))}
+    )))}
   </div>
 
   {/* Notifications */}

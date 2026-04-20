@@ -54,15 +54,26 @@ useEffect(() => {
       localStorage.setItem("cart", JSON.stringify(validItems));
     }
 
+    // Lấy giỏ hàng từ server trước
+    const serverRes = await cartAPI.getCart();
+    const serverItems = serverRes.data?.items || [];
+
+    // Chỉ sync những item chưa có trên server (tránh duplicate)
+    const serverProductSizeIds = new Set(serverItems.map(i => i.productSize?.id || i.productSizeId));
+    
     for (const item of validItems) {
-      await cartAPI.addToCart({
-        productSizeId: item.productSizeId,
-        quantity: item.quantity,
-      });
+      // Chỉ thêm nếu chưa có trên server
+      if (!serverProductSizeIds.has(item.productSizeId)) {
+        await cartAPI.addToCart({
+          productSizeId: item.productSizeId,
+          quantity: item.quantity,
+        });
+      }
     }
 
     localStorage.removeItem("cart");
 
+    // Lấy lại giỏ hàng đầy đủ sau khi sync
     const res = await cartAPI.getCart();
     setCart(res.data.items.map(normalizeCartItem));
   };
