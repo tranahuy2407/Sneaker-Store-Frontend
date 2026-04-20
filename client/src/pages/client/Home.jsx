@@ -54,21 +54,18 @@ export default function Home() {
           // Tìm product đầy đủ từ allProducts
           const fullProduct = allProducts.find(ap => ap.id === productId);
           
-          if (!fullProduct) {
-            console.warn(`Product ${productId} not found in allProducts`);
-            return p;
-          }
-          
-          const price = fullProduct.price || p.price || 0;
-          const discountPrice = fullProduct.discountPrice || p.discountPrice || fullProduct.price || p.price || 0;
-          const discount = discountPrice < price ? Math.round(((price - discountPrice) / price) * 100) : 0;
+          // Tính discount cho cả trường hợp có hoặc không tìm thấy fullProduct
+          const productData = fullProduct || p;
+          const price = Number(productData.price) || 0;
+          const discountPrice = Number(productData.discountPrice) || price;
+          const discount = price > 0 && discountPrice < price ? Math.round(((price - discountPrice) / price) * 100) : 0;
 
           return { 
-            ...fullProduct, 
+            ...productData, 
             price, 
             discountPrice, 
             discount,
-            sizes: fullProduct.sizes || []
+            sizes: productData.sizes || []
           };
         }).filter(Boolean); // Loại bỏ undefined
       }

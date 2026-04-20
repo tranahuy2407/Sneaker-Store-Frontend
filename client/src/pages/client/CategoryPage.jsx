@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { FaHeart } from "react-icons/fa";
 import categoryAPI from "@/api/category.api";
+import favoriteAPI from "@/api/favorite.api";
 
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
@@ -15,10 +18,12 @@ import recentlyViewedAPI from "@/api/recentlyViewed.api";
 
 const CategoryPage = () => {
   const { slug } = useParams();
+  const { isAuthenticated } = useSelector((state) => state.userAuth);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [favorites, setFavorites] = useState(new Set());
 
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
@@ -32,7 +37,10 @@ const CategoryPage = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [slug, page, sort]);
+    if (isAuthenticated) {
+      fetchFavorites();
+    }
+  }, [slug, page, sort, isAuthenticated]);
 
   const fetchProducts = async () => {
     try {
@@ -86,6 +94,40 @@ const CategoryPage = () => {
       console.error("Category error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const res = await favoriteAPI.getMyFavorites();
+      const favs = res.data?.data || [];
+      setFavorites(new Set(favs.map(f => f.product_id || f.productId)));
+    } catch (err) {
+      console.error("Lỗi tải yêu thích:", err);
+    }
+  };
+
+  const handleFavorite = async (e, productId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      alert("Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!");
+      return;
+    }
+    try {
+      await favoriteAPI.toggle(productId);
+      setFavorites(prev => {
+        const newFavs = new Set(prev);
+        if (newFavs.has(productId)) {
+          newFavs.delete(productId);
+        } else {
+          newFavs.add(productId);
+        }
+        return newFavs;
+      });
+    } catch (error) {
+      console.error("Lỗi khi cập nhật yêu thích:", error);
     }
   };
 
@@ -148,6 +190,15 @@ const CategoryPage = () => {
                   </div>
                 )}
 
+                {/* Nút yêu thích - luôn hiển thị trên mobile, hover trên desktop */}
+                <button
+                  onClick={(e) => handleFavorite(e, p.id)}
+                  className={`absolute left-2 top-2 z-20 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 lg:opacity-0 lg:group-hover:opacity-100 ${favorites.has(p.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                  title="Thêm vào yêu thích"
+                >
+                  <FaHeart size={16} fill={favorites.has(p.id) ? "currentColor" : "none"} />
+                </button>
+
                 <div className="relative overflow-hidden rounded-lg">
                   <img
                     src={getImageUrl(p.img)}
@@ -156,17 +207,18 @@ const CategoryPage = () => {
                     className="object-cover w-full transition-all rounded-lg aspect-square group-hover:scale-105 group-hover:brightness-90"
                   />
 
-                  <div className="absolute inset-0 flex items-center justify-center gap-3 transition-all translate-y-3 opacity-0 group-hover:opacity-100 group-hover:translate-y-0">
+                  {/* Hover buttons - responsive */}
+                  <div className="absolute inset-0 z-30 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 transition-all translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 p-2">
                     <Link
                       to={`/san-pham/${p.slug}`}
                       onClick={() => recentlyViewedAPI.add(p.id)}
-                      className="px-4 py-2 text-sm font-semibold text-gray-800 bg-white rounded-lg shadow hover:bg-gray-100 text-center"
+                      className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-800 bg-white rounded-lg shadow hover:bg-gray-100 text-center whitespace-nowrap"
                     >
                       Tùy chọn
                     </Link>
                     <button
                       onClick={() => setQuickViewProduct(p)}
-                      className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700"
+                      className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 whitespace-nowrap"
                     >
                       Xem nhanh
                     </button>

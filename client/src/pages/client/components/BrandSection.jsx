@@ -1,30 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useCart } from "../../../context/CartProvider";
-import QuickViewPopup from "./QuickViewPopup";
 import defaultImage from "../../../assets/default.jpg";
 import { FaHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import favoriteAPI from "../../../api/favorite.api";
 import recentlyViewedAPI from "../../../api/recentlyViewed.api";
 import { getImageUrl, getSrcSet } from "../../../helpers/imageSrcSet";
+import SuccessNotification from "../../../components/SuccessNotification";
+import WarningNotification from "../../../components/WarningNotification";
 
 const BrandSection = ({ title, banner, products, slug }) => {
-const [quickViewProduct, setQuickViewProduct] = useState(null);
-const { isAuthenticated } = useSelector((state) => state.userAuth);
+  const [favorites, setFavorites] = useState(new Set());
+  const [notif, setNotif] = useState({ show: false, type: '', message: '' });
+  const { isAuthenticated } = useSelector((state) => state.userAuth);
 
-const handleFavorite = async (productId) => {
-  if (!isAuthenticated) {
-    alert("Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!");
-    return;
-  }
-  try {
-    await favoriteAPI.toggle(productId);
-    alert("Đã cập nhật danh sách yêu thích!");
-  } catch (error) {
-    console.error("Lỗi khi cập nhật yêu thích:", error);
-  }
-};
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchFavorites();
+    }
+  }, [isAuthenticated]);
+
+  const fetchFavorites = async () => {
+    try {
+      const res = await favoriteAPI.getAll();
+      // Xử lý nhiều cấu trúc response khác nhau
+      let favs = res.data?.data;
+      if (!Array.isArray(favs)) {
+        favs = res.data?.favorites || res.data || [];
+      }
+      if (Array.isArray(favs)) {
+        setFavorites(new Set(favs.map(f => f.product_id || f.productId || f.id || f.product?.id)));
+      }
+    } catch (err) {
+      console.error("Lỗi tải yêu thích:", err);
+    }
+  };
+
+  const handleFavorite = async (e, productId) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      setNotif({ show: true, type: 'warning', message: "Vui lòng đăng nhập để thêm vào yêu thích!" });
+      return;
+    }
+    try {
+      await favoriteAPI.toggle(productId);
+      const isFav = favorites.has(productId);
+      setFavorites(prev => {
+        const newFavs = new Set(prev);
+        if (newFavs.has(productId)) {
+          newFavs.delete(productId);
+        } else {
+          newFavs.add(productId);
+        }
+        return newFavs;
+      });
+      setNotif({
+        show: true,
+        type: 'success',
+        message: isFav ? "Đã xóa khỏi danh sách yêu thích!" : "Đã thêm vào danh sách yêu thích!"
+      });
+    } catch (error) {
+      console.error("Lỗi khi cập nhật yêu thích:", error);
+      setNotif({ show: true, type: 'error', message: "Có lỗi xảy ra!" });
+    }
+  };
 
 return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
   {/* Tiêu đề */}
@@ -58,21 +99,13 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
         {/* Product card */}
         <div className="relative mb-3 overflow-hidden rounded-md">
 
-          {/* Badge giảm giá */}
-          {item.discount > 0 && (
-            <span className="absolute z-20 px-2 py-1 text-xs text-white bg-red-600 rounded-full right-2 top-2">
-              -{item.discount}% 
+          {/* Badge giảm giá - góc trái */}
+          {console.log('Discount:', item.discount, 'for', item.name)}
+          {item.discount > 0 ? (
+            <span className="absolute z-30 px-2.5 py-1.5 text-xs font-bold text-white bg-red-500 rounded-lg left-2 top-2 shadow-md border border-red-600">
+              -{item.discount}%
             </span>
-          )}
-
-          {/* Nút yêu thích */}
-          <button
-            onClick={() => handleFavorite(item.id)}
-            className="absolute left-2 top-2 z-20 p-2 bg-white/80 rounded-full text-gray-400 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm"
-            title="Thêm vào yêu thích"
-          >
-            <FaHeart size={14} />
-          </button>
+          ) : null}
 
           {/* Image */}
           <div className="relative aspect-square overflow-hidden rounded-md bg-gray-50 flex items-center justify-center">
@@ -90,25 +123,16 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
             })()}
           </div>
 
-          {/* Hover buttons */}
-          <div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 transition-all duration-300 translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0"
+          {/* Nút yêu thích - góc phải trên */}
+          <button
+            onClick={(e) => handleFavorite(e, item.id)}
+            className={`absolute right-2 top-2 z-20 w-9 h-9 flex items-center justify-center bg-white rounded-full shadow-lg border-2 transition-all hover:scale-110 active:scale-95 ${favorites.has(item.id) ? 'border-red-500 text-red-500' : 'border-gray-400 text-gray-400 hover:border-red-500 hover:text-red-500'}`}
+            title="Thêm vào yêu thích"
           >
-            <Link
-              to={`/san-pham/${item.slug}`}
-              onClick={() => recentlyViewedAPI.add(item.id)}
-              className="w-32 py-2 font-semibold text-center text-gray-800 bg-white border rounded-md shadow hover:bg-gray-100"
-            >
-              Tùy chọn
-            </Link>
-
-            <button
-              className="w-32 py-2 font-semibold text-white bg-blue-500 rounded-md shadow hover:bg-blue-600"
-              onClick={() => setQuickViewProduct(item)}
-            >
-              Xem nhanh
-            </button>
-          </div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill={favorites.has(item.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
         </div>
 
         {/* Product name */}
@@ -126,12 +150,19 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
     ))}
   </div>
 
-  {/* QuickView Popup */}
-  {quickViewProduct && (
-    <QuickViewPopup
-      product={quickViewProduct}
-      onClose={() => setQuickViewProduct(null)}
-    />
+  {/* Notifications */}
+  {notif.show && (
+    notif.type === 'success' ? (
+      <SuccessNotification
+        message={notif.message}
+        onClose={() => setNotif({ ...notif, show: false })}
+      />
+    ) : (
+      <WarningNotification
+        message={notif.message}
+        onClose={() => setNotif({ ...notif, show: false })}
+      />
+    )
   )}
 </div>
 );
