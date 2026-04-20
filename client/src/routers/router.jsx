@@ -52,6 +52,7 @@ import AdminReviewStorePage from "@/pages/admin/reviews/AdminReviewStorePage.jsx
 import FavoritePage from "@/pages/client/FavoritePage.jsx";
 import PromotionDetail from "@/pages/client/PromotionDetail.jsx";
 import ForgotPassword from "@/pages/client/ForgotPassword.jsx";
+import AllProductsPage from "@/pages/client/AllProductsPage.jsx";
 import ResetPassword from "@/pages/client/ResetPassword.jsx";
 import HomeSectionsPage from "@/pages/admin/home-sections/HomeSectionsPage.jsx";
 import AddHomeSectionPage from "@/pages/admin/home-sections/AddHomeSectionPage.jsx";
@@ -181,11 +182,15 @@ export const routes = [
   },
   {
     path: "/san-pham",
-    element: <SearchPage />,
+    element: <AllProductsPage />,
   },
   {
     path: "/tim-kiem",
     element: <SearchPage />,
+  },
+  {
+    path: "/tat-ca-san-pham",
+    element: <AllProductsPage />,
   },
   {
     path: "/dang-nhap",

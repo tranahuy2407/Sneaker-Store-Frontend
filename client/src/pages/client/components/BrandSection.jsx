@@ -99,6 +99,40 @@ return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
     </div>
   )}
 
+  {/* Filter Bar */}
+  {!isLoading && products.length > 0 && (
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-white rounded-xl shadow-sm">
+      <div className="flex items-center gap-2 text-gray-600">
+        <span className="text-sm font-medium">{products.length} sản phẩm</span>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        {/* Sort Dropdown */}
+        <select 
+          className="px-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+          defaultValue=""
+        >
+          <option value="">Sắp xếp</option>
+          <option value="price_asc">Giá: Thấp → Cao</option>
+          <option value="price_desc">Giá: Cao → Thấp</option>
+          <option value="discount">Giảm giá nhiều nhất</option>
+        </select>
+
+        {/* Price Filter */}
+        <select 
+          className="px-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+          defaultValue=""
+        >
+          <option value="">Khoảng giá</option>
+          <option value="0-1000000">Dưới 1 triệu</option>
+          <option value="1000000-2000000">1 - 2 triệu</option>
+          <option value="2000000-5000000">2 - 5 triệu</option>
+          <option value="5000000-999999999">Trên 5 triệu</option>
+        </select>
+      </div>
+    </div>
+  )}
+
   {/* Danh sách sản phẩm */}
   <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
     {isLoading ? (

@@ -22,10 +22,13 @@ const Navbar = ({ onHeightChange }) => {
         const res = await categoryAPI.getAll({ limit: 7 });
         const categories = res.data?.data || [];
 
-        const mappedMenu = categories.map((cat) => ({
-          name: cat.name,
-          href: `/danh-muc/${cat.slug}`,
-        }));
+        const mappedMenu = [
+          { name: "Tất cả sản phẩm", href: "/tat-ca-san-pham" },
+          ...categories.map((cat) => ({
+            name: cat.name,
+            href: `/danh-muc/${cat.slug}`,
+          }))
+        ];
 
         setMenuItems(mappedMenu);
       } catch (error) {

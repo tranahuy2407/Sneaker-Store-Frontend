@@ -141,28 +141,53 @@ const BrandPage = () => {
           ]}
         />
       </div>
-      <div className="container flex items-center justify-between px-5 mx-auto mt-2 mb-6">
-        <h1 className="text-2xl font-bold text-blue-600 uppercase">
-          {brandName}
-        </h1>
+      {/* Filter Bar */}
+      <div className="container mx-auto px-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Title & Count */}
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-blue-600 uppercase">
+                {brandName}
+              </h1>
+              {!loading && (
+                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  {total} sản phẩm
+                </span>
+              )}
+            </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-gray-700">Sắp xếp:</span>
+            {/* Filters */}
+            <div className="flex items-center gap-3 flex-wrap justify-end">
+              {/* Price Filter */}
+              <select
+                className="px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                defaultValue=""
+              >
+                <option value="">Khoảng giá</option>
+                <option value="0-1000000">Dưới 1 triệu</option>
+                <option value="1000000-2000000">1 - 2 triệu</option>
+                <option value="2000000-5000000">2 - 5 triệu</option>
+                <option value="5000000-999999999">Trên 5 triệu</option>
+              </select>
 
-          <select
-            className="px-3 py-2 text-sm border border-gray-300 rounded-lg"
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">Mặc định</option>
-            <option value="price_asc">Giá tăng dần</option>
-            <option value="price_desc">Giá giảm dần</option>
-            <option value="name_asc">Tên A → Z</option>
-            <option value="name_desc">Tên Z → A</option>
-          </select>
+              {/* Sort */}
+              <select
+                className="px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">Sắp xếp</option>
+                <option value="price_asc">Giá: Thấp → Cao</option>
+                <option value="price_desc">Giá: Cao → Thấp</option>
+                <option value="name_asc">Tên A → Z</option>
+                <option value="name_desc">Tên Z → A</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
       <div className="container px-5 py-6 mx-auto">

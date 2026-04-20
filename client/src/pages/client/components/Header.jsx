@@ -126,6 +126,14 @@ const Header = ({ onHeightChange }) => {
 
               {/* Categories - CENTERED */}
               <ul className="flex items-center justify-center gap-4 md:gap-8 text-sm font-medium text-gray-700 overflow-x-auto flex-1">
+                <li className="whitespace-nowrap">
+                  <Link 
+                    to="/tat-ca-san-pham"
+                    className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                  >
+                    Tất cả sản phẩm
+                  </Link>
+                </li>
                 {categories.map((cat) => (
                   <li key={cat.id} className="whitespace-nowrap">
                     <Link 
