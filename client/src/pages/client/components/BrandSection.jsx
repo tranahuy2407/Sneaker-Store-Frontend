@@ -68,6 +68,37 @@ const BrandSection = ({ title, banner, products, slug, isLoading = false }) => {
   };
 
 return ( <div className="w-full px-4 py-10 mx-auto max-w-7xl md:px-6">
+  {/* Tiêu đề */}
+  <div className="text-center mb-6">
+    <h2 className="text-2xl md:text-3xl font-bold inline-block pb-4 relative text-gray-800">
+      {title}
+      <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-16 h-1 bg-orange-500 rounded"></span>
+    </h2>
+  </div>
+
+  {/* Banner */}
+  {isLoading ? (
+    <div className="mb-8">
+      <SkeletonBanner />
+    </div>
+  ) : banner && (
+    <Link to={`/thuong-hieu/${slug}`} className="block mb-8">
+      <div className="relative w-full aspect-[21/9] md:aspect-[21/8] lg:aspect-[21/7] rounded-2xl overflow-hidden shadow-2xl group">
+        <img
+          src={getImageUrl(banner)}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center">
+          <span className="inline-flex items-center text-sm md:text-base font-semibold bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full group-hover:bg-white/30 transition-all border border-white/30">
+            Khám phá ngay →
+          </span>
+        </div>
+      </div>
+    </Link>
+  )}
+
   {/* Danh sách sản phẩm */}
   <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
     {isLoading ? (

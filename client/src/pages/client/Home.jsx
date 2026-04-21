@@ -5,6 +5,7 @@ import Slide from "./components/Slide";
 import Footer from "./components/Footer";
 import ProductSlider from "./components/ProductSlider";
 import BrandSection from "./components/BrandSection";
+import Loading, { SkeletonBanner, SkeletonCard } from "@/components/Loading";
 import productAPI from "@/api/product.api";
 import homeSectionAPI from "@/api/homeSection.api";
 
@@ -93,17 +94,26 @@ export default function Home() {
       <ProductSlider />
       <Slide />
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="space-y-10 px-4 py-10">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="max-w-7xl mx-auto">
+              <div className="h-8 w-48 bg-gray-200 rounded mx-auto mb-6 animate-pulse"></div>
+              <SkeletonBanner className="mb-8" />
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <SkeletonCard count={5} />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
-        homeSections.map((section) => (
+        homeSections.map((section, index) => (
           <BrandSection
             key={section.id}
             title={section.title}
             slug={section.slug}
             banner={section.banner_url}
             products={getSectionProducts(section)}
+            isLoading={false}
           />
         ))
       )}
