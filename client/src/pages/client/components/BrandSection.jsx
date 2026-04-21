@@ -6,7 +6,7 @@ import favoriteAPI from "../../../api/favorite.api";
 import { getImageUrl, getSrcSet } from "../../../helpers/imageSrcSet";
 import SuccessNotification from "../../../components/SuccessNotification";
 import WarningNotification from "../../../components/WarningNotification";
-import SkeletonCard, { SkeletonBanner, SkeletonTitle } from "../../../components/SkeletonCard";
+import { SkeletonCard, SkeletonBanner, SkeletonText as SkeletonTitle } from "../../../components/Loading";
 
 const BrandSection = ({ title, banner, products, slug, isLoading = false }) => {
   const [favorites, setFavorites] = useState(new Set());

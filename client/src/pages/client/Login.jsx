@@ -5,6 +5,7 @@ import { AiFillEye, AiFillEyeInvisible, AiOutlineGoogle } from "react-icons/ai";
 import logo from "../../assets/sneaker-logo.jfif";
 import WarningNotification from "@/components/WarningNotification";
 import { loginUser, clearUserError, googleLogin } from "../../redux/slices/userAuthSlice";
+import Loading from "@/components/Loading";
 
 export default function UserLogin() {
   const googleButtonRef = useRef(null);
@@ -180,7 +181,7 @@ export default function UserLogin() {
             disabled={loading}
             className="w-full py-3 mt-2 text-lg font-bold text-white transition shadow-lg bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl hover:from-blue-600 hover:to-blue-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            {loading ? <Loading variant="button" text="Đang đăng nhập..." /> : "Đăng nhập"}
           </button>
 
           {/* Separator */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginAdmin, clearError } from "../../redux/slices/authSlice";
+import Loading from "@/components/Loading";
 import logo from "../../assets/sneaker-logo.jfif";
 
 export default function AdminLogin() {
@@ -91,7 +92,7 @@ export default function AdminLogin() {
             disabled={loading}
             className="w-full py-3 mt-2 text-lg font-bold text-white transition shadow-lg bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-xl hover:from-yellow-500 hover:to-yellow-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            {loading ? <Loading variant="button" text="Đang đăng nhập..." /> : "Đăng nhập"}
           </button>
         </form>
 

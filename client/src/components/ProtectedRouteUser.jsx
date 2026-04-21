@@ -24,11 +24,11 @@ export default function ProtectedRouteUser({ children }) {
 
   if (checkingAuth) {
     console.log("[ProtectedRoute] Đang kiểm tra auth...");
-    return <Loading />;
+    return <Loading variant="full" text="Đang xác thực người dùng..." size="md" />;
   }
 
   if (!localAuth.checked) {
-    return <Loading />;
+    return <Loading variant="full" text="Đang tải thông tin..." size="md" />;
   }
 
   if (isAuthenticated) {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser, clearUserError, googleLogin } from "../../redux/slices/userAuthSlice";
+import Loading from "@/components/Loading";
 import { useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible, AiOutlineGoogle } from "react-icons/ai";
 import logo from "../../assets/sneaker-logo.jfif";
@@ -40,8 +41,7 @@ export default function Register() {
           itp_support: true,
           use_fedcm_for_prompt: true,
         });
-
-        // Render the official Google button
+        
         if (googleButtonRef.current) {
           window.google.accounts.id.renderButton(googleButtonRef.current, {
             theme: "outline",
@@ -238,7 +238,7 @@ export default function Register() {
             disabled={loading}
             className="w-full py-3 mt-2 text-lg font-bold text-white shadow-lg bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl hover:from-blue-600 hover:to-blue-800 active:scale-95"
           >
-            {loading ? "Đang tạo..." : "Đăng ký"}
+            {loading ? <Loading variant="button" text="Đang tạo..." /> : "Đăng ký"}
           </button>
 
           {/* Separator */}

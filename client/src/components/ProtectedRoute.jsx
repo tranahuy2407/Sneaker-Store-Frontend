@@ -6,7 +6,7 @@ export default function ProtectedRoute({ children }) {
   const { isAuthenticated, checkingAuth } = useSelector((state) => state.auth);
 
   if (checkingAuth) {
-    return <Loading />;
+    return <Loading variant="full" text="Đang xác thực..." size="md" />;
   }
 
   if (!isAuthenticated) {

@@ -29,7 +29,7 @@ function App() {
   }, [dispatch]);
 
   if ((adminChecking || userChecking) && minLoadingTime) {
-    return <Loading />;
+    return <Loading variant="full" text="Đang khởi động..." size="lg" />;
   }
 
  return (

@@ -9,7 +9,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SortModal from "./components/SortModal";
 import FilterSidebar from "./components/FilterSidebar";
-import SkeletonCard from "@/components/SkeletonCard";
+import { SkeletonCard } from "@/components/Loading";
 import Pagination from "@/components/Pagination";
 
 import productAPI from "@/api/product.api";
